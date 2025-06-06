@@ -1,8 +1,66 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { collusion } from '../data/collusion';
-// import afad from "../../public/"
+import socket from '../socket';
+
+class Spirite {
+  constructor({ position, velocity, image, frames = { max: 1 }, spirites }) {
+    this.position = position;
+    this.velocity = velocity;
+    this.frames = { val: 0, ...frames, elapsed: 0 };
+    this.width = 0;
+    this.moving = false;
+    this.keys = 's';
+    this.spirites = spirites;
+    this.image = image;
+    this.offx = 0;
+    this.offy = 0;
+    this.image.onload = () => {
+      this.width = this.image.width / this.frames.max;
+      this.height = this.image.height;
+    };
+  }
+
+  draw(c) {
+    if (this.frames.max > 0 && this.moving) {
+      if (this.keys === 's') this.image = this.spirites.down;
+      if (this.keys === 'a') this.image = this.spirites.left;
+      if (this.keys === 'd') this.image = this.spirites.right;
+      if (this.keys === 'w') this.image = this.spirites.up;
+    }
+
+    c.drawImage(
+      this.image,
+      this.frames.max === 0 ? 0 : this.frames.val * this.width,
+      0,
+      this.image.width / this.frames.max,
+      this.image.height,
+      this.position.x -this.offx,
+      this.position.y -this.offy,
+      this.image.width / this.frames.max,
+      this.image.height
+    );
+
+    if (this.moving) {
+      if (this.frames.max > 0) this.frames.elapsed++;
+      if (this.frames.elapsed % 10 === 0)
+        this.frames.val = this.frames.val < this.frames.max - 1 ? this.frames.val + 1 : 0;
+    } else {
+      this.frames.val = 0;
+    }
+  }
+}
+
 const MapCanvas = () => {
   const canvasRef = useRef(null);
+  const [playerposition, setPlayer] = useState({});
+  const lastUpdateRef = useRef(Date.now());
+  let otherPlayerRef = null; 
+
+
+
+  useEffect(() => {
+    socket.emit('player-position', playerposition);
+  }, [playerposition]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -24,7 +82,7 @@ const MapCanvas = () => {
     image.src = '/Pellet Town.png';
     const foreimage = new Image();
     foreimage.src = '/Pellet Town_fore.png';
-    console.log(foreimage.src)
+
     const playerImage = new Image();
     playerImage.src = '/playerDown.png';
     const playerUpImage = new Image();
@@ -35,49 +93,6 @@ const MapCanvas = () => {
     playerRightImage.src = '/playerRight.png';
 
     const velocity = 3;
-    class Spirite {
-      constructor({ position, velocity, image, frames = { max: 1 }, spirites }) {
-        this.position = position;
-        this.velocity = velocity;
-        this.frames = { val: 0, ...frames, elapsed: 0 };
-        this.width = 0;
-        this.moving = false;
-        this.keys = 's';
-        this.spirites = spirites;
-        this.image = image;
-        this.image.onload = () => {
-          this.width = this.image.width / this.frames.max;
-          this.height = this.image.height;
-        };
-      }
-      draw() {
-        if (this.frames.max > 0 && this.moving) {
-          if (this.keys === 's') this.image = this.spirites.down;
-          if (this.keys === 'a') this.image = this.spirites.left;
-          if (this.keys === 'd') this.image = this.spirites.right;
-          if (this.keys === 'w') this.image = this.spirites.up;
-        }
-        c.drawImage(
-          this.image,
-          this.frames.max === 0 ? 0 : this.frames.val * this.width,
-          0,
-          this.image.width / this.frames.max,
-          this.image.height,
-          this.position.x,
-          this.position.y,
-          this.image.width / this.frames.max,
-          this.image.height
-        );
-
-        if (this.moving) {
-          if (this.frames.max > 0) this.frames.elapsed++;
-          if (this.frames.elapsed % 10 === 0)
-            this.frames.val = this.frames.val < this.frames.max - 1 ? this.frames.val + 1 : 0;
-        } else {
-          this.frames.val = 0;
-        }
-      }
-    }
 
     class Boundary {
       static width = 65;
@@ -131,6 +146,29 @@ const MapCanvas = () => {
       },
     });
 
+    socket.on('player-position', (content) => {
+      console.log('data received');
+      if(!otherPlayerRef){
+      otherPlayerRef = new Spirite({
+        position: {
+          x: canvas.width / 2 - canvas.width * 0.13 + content.x,
+          y: canvas.height / 2 - canvas.height * 0.1 + content.y,
+        },
+        image: playerImage,
+        frames: { max: 4 },
+        spirites: {
+          up: playerUpImage,
+          down: playerImage,
+          left: playerLeftImage,
+          right: playerRightImage,
+        },
+      });}
+      else {
+        otherPlayerRef.position.x = canvas.width / 2 - canvas.width * 0.13 + content.x;
+        otherPlayerRef.position.y = canvas.height / 2 - canvas.height * 0.1 + content.y;
+      }
+    });
+
     const collusionCheck = ({ background, boundary, key }) => {
       let testX = -background.position.x + 0.35 * canvas.width;
       let testY = -background.position.y + 0.45 * canvas.height;
@@ -150,14 +188,25 @@ const MapCanvas = () => {
 
     function animate() {
       window.requestAnimationFrame(animate);
-      background.draw();
+      background.draw(c);
+      const now = Date.now();
+
       boundaries.forEach((boundary) => {
         boundary.draw({ x: -background.position.x, y: -background.position.y });
       });
-      player.draw();
-      foreground.draw();
+
+      player.draw(c);
+
+      if (otherPlayerRef) {
+        otherPlayerRef.draw(c);
+        otherPlayerRef.offx = -background.position.x - 750;
+        otherPlayerRef.offy = -background.position.y - 600;
+      }
+
+      foreground.draw(c);
 
       if (keys.w.pressed) {
+
         let move = true;
         player.moving = true;
         player.keys = 'w';
@@ -204,6 +253,13 @@ const MapCanvas = () => {
       } else {
         player.moving = false;
         player.keys = 's';
+      }
+      if (player.moving && now - lastUpdateRef.current > 100) {
+        setPlayer({
+          x: -background.position.x - 750,
+          y: -background.position.y - 600,
+        });
+        lastUpdateRef.current = now;
       }
     }
 
@@ -253,10 +309,7 @@ const MapCanvas = () => {
     };
   }, []);
 
-  return (
-        <>
-            <canvas ref={canvasRef} className="w-full h-full" />
-        </>);
+  return <canvas ref={canvasRef} className="w-full h-full" />;
 };
 
 export default MapCanvas;
