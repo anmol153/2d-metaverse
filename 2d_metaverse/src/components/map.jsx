@@ -145,6 +145,7 @@ const MapCanvas = () => {
               });
           otherplayer.push({ id, player: other });
         });
+    
     class Boundary {
       static width = 65;
       static height = 65;
@@ -210,7 +211,10 @@ const MapCanvas = () => {
         }
       }
     );
-
+    socket.on('user-disconnected', ({ id }) => {
+      console.log(id);
+    otherplayer = otherplayer.filter((entry) => entry.id !== id);
+    });
     const collusionCheck = ({ background, boundary, key }) => {
       let testX = -background.position.x + 0.35 * canvas.width;
       let testY = -background.position.y + 0.45 * canvas.height;

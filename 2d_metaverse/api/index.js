@@ -23,7 +23,7 @@ const io = new Server(server, {
 });
 
 
-const connectedUsers =[];
+let connectedUsers =[];
 
 io.on('connection', (socket) => {
   console.log('Player connected:', socket.id);
@@ -36,14 +36,21 @@ io.on('connection', (socket) => {
 
   socket.broadcast.emit('new-user-connected', { id:playerId });
 
-  connectedUsers.push({ id: playerId });
+  connectedUsers.push({ id: playerId,socketId : socket.id });
 })
 
   socket.on('player-position', (data) => {
     console.log('Received player-position:', data);
     socket.broadcast.emit('player-position', data); 
   });
+  socket.on('disconnect', () => {
+    console.log('Player disconnected:', socket.id);
+    const disconnectedUser = connectedUsers.find((u) => u.socketId == socket.id);
+    connectedUsers  = connectedUsers.filter((u) => u.socketId !== socket.id);
+    socket.broadcast.emit('user-disconnected', { id:disconnectedUser.id });
+  });
 });
+
 
 server.listen(4000, () => {
   console.log('Server is running on http://localhost:4000');
