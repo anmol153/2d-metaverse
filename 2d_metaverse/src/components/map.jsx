@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { collusion } from '../data/collusion';
 import socket from '../socket';
+import { useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { addplayer } from '../redux/player';
+
 
 class Spirite {
   constructor({ position, velocity, image, frames = { max: 1 }, spirites }) {
@@ -50,39 +54,43 @@ class Spirite {
   }
 }
 
+let otherplayer = [];
 const MapCanvas = () => {
+  const selector = useSelector((state) => state.user);
+  const myId = selector.player;
   const canvasRef = useRef(null);
   const [playerposition, setPlayer] = useState({});
   const lastUpdateRef = useRef(Date.now());
-  let otherPlayerRef = null; 
+  
 
-
-
+  
+  
   useEffect(() => {
-    socket.emit('player-position', playerposition);
+    socket.emit('player-position', {id:myId,position:playerposition});
   }, [playerposition]);
-
+  
+  
   useEffect(() => {
     const canvas = canvasRef.current;
     const c = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-
+    
     const offset = { x: -750, y: -600 };
     const collusionMap = [];
     for (let i = 0; i < collusion.length; i += 70) {
       const x = collusion.slice(i, i + 70);
       collusionMap.push(x);
     }
-
+    
     c.fillStyle = 'black';
     c.fillRect(0, 0, canvas.width, canvas.height);
-
+    
     const image = new Image();
     image.src = '/Pellet Town.png';
     const foreimage = new Image();
     foreimage.src = '/Pellet Town_fore.png';
-
+    
     const playerImage = new Image();
     playerImage.src = '/playerDown.png';
     const playerUpImage = new Image();
@@ -91,9 +99,52 @@ const MapCanvas = () => {
     playerLeftImage.src = '/playerLeft.png';
     const playerRightImage = new Image();
     playerRightImage.src = '/playerRight.png';
-
+    
     const velocity = 3;
+    
+        socket.emit('new-user connected', myId);
+        socket.on('existing_users', (data) => {
+          data.forEach(({ id }) => {
 
+              if (id=== myId) return;
+
+              const other = new Spirite({
+                position: {
+                  x: canvas.width / 2 - canvas.width * 0.13,
+                  y: canvas.height / 2 - canvas.height * 0.1,
+                },
+                image: playerImage,
+                frames: { max: 4 },
+                spirites: {
+                  up: playerUpImage,
+                  down: playerImage,
+                  left: playerLeftImage,
+                  right: playerRightImage,
+                },
+              });
+              otherplayer.push({ id: id,player: other });
+          })
+      });
+      socket.on('new-user-connected', ({ id }) => {
+          if (id === myId) return;
+
+
+          const other = new Spirite({
+                position: {
+                  x: canvas.width / 2 - canvas.width * 0.13,
+                  y: canvas.height / 2 - canvas.height * 0.1,
+                },
+                image: playerImage,
+                frames: { max: 4 },
+                spirites: {
+                  up: playerUpImage,
+                  down: playerImage,
+                  left: playerLeftImage,
+                  right: playerRightImage,
+                },
+              });
+          otherplayer.push({ id, player: other });
+        });
     class Boundary {
       static width = 65;
       static height = 65;
@@ -147,27 +198,18 @@ const MapCanvas = () => {
     });
 
     socket.on('player-position', (content) => {
-      console.log('data received');
-      if(!otherPlayerRef){
-      otherPlayerRef = new Spirite({
-        position: {
-          x: canvas.width / 2 - canvas.width * 0.13 + content.x,
-          y: canvas.height / 2 - canvas.height * 0.1 + content.y,
-        },
-        image: playerImage,
-        frames: { max: 4 },
-        spirites: {
-          up: playerUpImage,
-          down: playerImage,
-          left: playerLeftImage,
-          right: playerRightImage,
-        },
-      });}
-      else {
-        otherPlayerRef.position.x = canvas.width / 2 - canvas.width * 0.13 + content.x;
-        otherPlayerRef.position.y = canvas.height / 2 - canvas.height * 0.1 + content.y;
+        console.log('data received');
+        console.log(content);
+        let otherpl = otherplayer.find((player) => player.id === content.id)
+        console.log(otherpl);
+        let other = otherpl?.player
+        if(other){
+          console.log(content.position);
+        other.position.x = canvas.width / 2 - canvas.width * 0.13 + content.position.x;
+        other.position.y = canvas.height / 2 - canvas.height * 0.1 + content.position.y;
+        }
       }
-    });
+    );
 
     const collusionCheck = ({ background, boundary, key }) => {
       let testX = -background.position.x + 0.35 * canvas.width;
@@ -197,10 +239,11 @@ const MapCanvas = () => {
 
       player.draw(c);
 
-      if (otherPlayerRef) {
-        otherPlayerRef.draw(c);
-        otherPlayerRef.offx = -background.position.x - 750;
-        otherPlayerRef.offy = -background.position.y - 600;
+      for (let entry of otherplayer) {
+        let other = entry.player;
+        other.draw(c);
+        other.offx = -background.position.x - 750;
+        other.offy = -background.position.y - 600;
       }
 
       foreground.draw(c);
