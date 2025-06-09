@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { collusion } from '../data/collusion';
 import socket from '../socket';
-import { useDispatch } from 'react-redux';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addplayer } from '../redux/player';
 
-
 class Spirite {
-  constructor({ position, velocity, image, frames = { max: 1 }, spirites }) {
+  constructor({ position, velocity, image, frames = { max: 1 }, spirites, id }) {
     this.position = position;
     this.velocity = velocity;
     this.frames = { val: 0, ...frames, elapsed: 0 };
@@ -18,6 +16,8 @@ class Spirite {
     this.image = image;
     this.offx = 0;
     this.offy = 0;
+    this.id = id;
+
     this.image.onload = () => {
       this.width = this.image.width / this.frames.max;
       this.height = this.image.height;
@@ -38,16 +38,53 @@ class Spirite {
       0,
       this.image.width / this.frames.max,
       this.image.height,
-      this.position.x -this.offx,
-      this.position.y -this.offy,
+      this.position.x - this.offx,
+      this.position.y - this.offy,
       this.image.width / this.frames.max,
       this.image.height
     );
 
+    const text = String(this.id);
+    const padding = 8;
+    const fontSize = 14;
+    const textX = this.position.x - this.offx;
+    const textY = this.position.y - this.offy - 30;
+    const textWidth = c.measureText(this.id).width;
+    const textHeight = fontSize + 4;
+
+    c.font = `bold ${fontSize}px "Segoe UI", Tahoma, Geneva, Verdana, sans-serif`;
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+
+    c.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    const radius = 6;
+    const bgX = textX - textWidth / 2 - padding / 2;
+    const bgY = textY - textHeight / 2;
+    const bgWidth = textWidth + padding;
+    const bgHeight = textHeight;
+
+    c.beginPath();
+    c.moveTo(bgX + radius, bgY);
+    c.lineTo(bgX + bgWidth - radius, bgY);
+    c.quadraticCurveTo(bgX + bgWidth, bgY, bgX + bgWidth, bgY + radius);
+    c.lineTo(bgX + bgWidth, bgY + bgHeight - radius);
+    c.quadraticCurveTo(bgX + bgWidth, bgY + bgHeight, bgX + bgWidth - radius, bgY + bgHeight);
+    c.lineTo(bgX + radius, bgY + bgHeight);
+    c.quadraticCurveTo(bgX, bgY + bgHeight, bgX, bgY + bgHeight - radius);
+    c.lineTo(bgX, bgY + radius);
+    c.quadraticCurveTo(bgX, bgY, bgX + radius, bgY);
+    c.closePath();
+    c.fill();
+
+    c.fillStyle = 'white';
+    c.fillText(this.id, textX, textY);
+
     if (this.moving) {
       if (this.frames.max > 0) this.frames.elapsed++;
-      if (this.frames.elapsed % 10 === 0)
+      if (this.frames.elapsed % 10 === 0) {
         this.frames.val = this.frames.val < this.frames.max - 1 ? this.frames.val + 1 : 0;
+        this.frames.elapsed = 0;
+      }
     } else {
       this.frames.val = 0;
     }
@@ -55,42 +92,37 @@ class Spirite {
 }
 
 let otherplayer = [];
+
 const MapCanvas = () => {
   const selector = useSelector((state) => state.user);
   const myId = selector.player;
   const canvasRef = useRef(null);
   const [playerposition, setPlayer] = useState({});
   const lastUpdateRef = useRef(Date.now());
-  
+  const [lastKeypressed, setlastKeypressed] = useState('s');
 
-  
-  
   useEffect(() => {
-    socket.emit('player-position', {id:myId,position:playerposition});
+    socket.emit('player-position', { id: myId, position: playerposition, keys: lastKeypressed });
   }, [playerposition]);
-  
-  
+
   useEffect(() => {
     const canvas = canvasRef.current;
     const c = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    
+
     const offset = { x: -750, y: -600 };
     const collusionMap = [];
     for (let i = 0; i < collusion.length; i += 70) {
       const x = collusion.slice(i, i + 70);
       collusionMap.push(x);
     }
-    
-    c.fillStyle = 'black';
-    c.fillRect(0, 0, canvas.width, canvas.height);
-    
+
     const image = new Image();
     image.src = '/Pellet Town.png';
     const foreimage = new Image();
     foreimage.src = '/Pellet Town_fore.png';
-    
+
     const playerImage = new Image();
     playerImage.src = '/playerDown.png';
     const playerUpImage = new Image();
@@ -99,61 +131,67 @@ const MapCanvas = () => {
     playerLeftImage.src = '/playerLeft.png';
     const playerRightImage = new Image();
     playerRightImage.src = '/playerRight.png';
-    
-    const velocity = 3;
-    
-        socket.emit('new-user connected', myId);
-        socket.on('existing_users', (data) => {
-          data.forEach(({ id }) => {
 
-              if (id=== myId) return;
+    const velocity = 1;
 
-              const other = new Spirite({
-                position: {
-                  x: canvas.width / 2 - canvas.width * 0.13,
-                  y: canvas.height / 2 - canvas.height * 0.1,
-                },
-                image: playerImage,
-                frames: { max: 4 },
-                spirites: {
-                  up: playerUpImage,
-                  down: playerImage,
-                  left: playerLeftImage,
-                  right: playerRightImage,
-                },
-              });
-              otherplayer.push({ id: id,player: other });
-          })
-      });
-      socket.on('new-user-connected', ({ id }) => {
-          if (id === myId) return;
+    socket.emit('new-user connected', myId);
 
+    socket.on('existing_users', (data) => {
+      data.forEach(({ id }) => {
+        if (id === myId) return;
 
-          const other = new Spirite({
-                position: {
-                  x: canvas.width / 2 - canvas.width * 0.13,
-                  y: canvas.height / 2 - canvas.height * 0.1,
-                },
-                image: playerImage,
-                frames: { max: 4 },
-                spirites: {
-                  up: playerUpImage,
-                  down: playerImage,
-                  left: playerLeftImage,
-                  right: playerRightImage,
-                },
-              });
-          otherplayer.push({ id, player: other });
+        const other = new Spirite({
+          position: {
+            x: canvas.width / 2 - canvas.width * 0.13,
+            y: canvas.height / 2 - canvas.height * 0.1,
+          },
+          image: playerImage,
+          frames: { max: 4 },
+          spirites: {
+            up: playerUpImage,
+            down: playerImage,
+            left: playerLeftImage,
+            right: playerRightImage,
+          },
+          id: id,
         });
-    
+
+        otherplayer.push({ id, player: other, lastUpdated: Date.now() });
+      });
+    });
+
+    socket.on('new-user-connected', ({ id }) => {
+      if (id === myId) return;
+
+      const other = new Spirite({
+        position: {
+          x: canvas.width / 2 - canvas.width * 0.13,
+          y: canvas.height / 2 - canvas.height * 0.1,
+        },
+        image: playerImage,
+        frames: { max: 4 },
+        spirites: {
+          up: playerUpImage,
+          down: playerImage,
+          left: playerLeftImage,
+          right: playerRightImage,
+        },
+        id: id,
+      });
+
+      otherplayer.push({ id, player: other, lastUpdated: Date.now() });
+    });
+
     class Boundary {
       static width = 65;
       static height = 65;
+
       constructor(position) {
         this.position = position;
         this.width = 65;
         this.height = 65;
       }
+
       draw(offset) {
         c.fillStyle = 'rgba(255, 0, 0, 0)';
         c.fillRect(
@@ -169,10 +207,7 @@ const MapCanvas = () => {
     collusionMap.forEach((row, i) => {
       row.forEach((symbol, j) => {
         if (symbol === 1025) {
-          const position = {
-            x: j * Boundary.width,
-            y: i * Boundary.height,
-          };
+          const position = { x: j * Boundary.width, y: i * Boundary.height };
           boundaries.push(new Boundary(position));
         }
       });
@@ -181,7 +216,12 @@ const MapCanvas = () => {
     const background = new Spirite({ position: offset, velocity: 0, image });
     const foreground = new Spirite({ position: offset, velocity: 0, image: foreimage });
 
-    const keys = { w: { pressed: false }, a: { pressed: false }, s: { pressed: false }, d: { pressed: false } };
+    const keys = {
+      w: { pressed: false },
+      a: { pressed: false },
+      s: { pressed: false },
+      d: { pressed: false },
+    };
 
     const player = new Spirite({
       position: {
@@ -196,29 +236,31 @@ const MapCanvas = () => {
         left: playerLeftImage,
         right: playerRightImage,
       },
+      id: myId,
     });
 
     socket.on('player-position', (content) => {
-        console.log('data received');
-        console.log(content);
-        let otherpl = otherplayer.find((player) => player.id === content.id)
-        console.log(otherpl);
-        let other = otherpl?.player
-        if(other){
-          console.log(content.position);
+      let otherpl = otherplayer.find((player) => player.id === content.id);
+      let other = otherpl?.player;
+
+      if (other) {
         other.position.x = canvas.width / 2 - canvas.width * 0.13 + content.position.x;
         other.position.y = canvas.height / 2 - canvas.height * 0.1 + content.position.y;
-        }
+        other.keys = content.keys;
+        otherpl.lastUpdated = Date.now();
+        other.moving = true;
       }
-    );
-    socket.on('user-disconnected', ({ id }) => {
-      console.log(id);
-    otherplayer = otherplayer.filter((entry) => entry.id !== id);
     });
+
+    socket.on('user-disconnected', ({ id }) => {
+      otherplayer = otherplayer.filter((entry) => entry.id !== id);
+    });
+
     const collusionCheck = ({ background, boundary, key }) => {
       let testX = -background.position.x + 0.35 * canvas.width;
       let testY = -background.position.y + 0.45 * canvas.height;
       const padding = 5;
+
       if (key === 'w') testY -= padding;
       if (key === 's') testY += padding;
       if (key === 'a') testX -= padding;
@@ -234,8 +276,8 @@ const MapCanvas = () => {
 
     function animate() {
       window.requestAnimationFrame(animate);
-      background.draw(c);
       const now = Date.now();
+      background.draw(c);
 
       boundaries.forEach((boundary) => {
         boundary.draw({ x: -background.position.x, y: -background.position.y });
@@ -245,62 +287,45 @@ const MapCanvas = () => {
 
       for (let entry of otherplayer) {
         let other = entry.player;
-        other.draw(c);
         other.offx = -background.position.x - 750;
         other.offy = -background.position.y - 600;
+
+        if (Date.now() - entry.lastUpdated < 200) {
+          other.moving = true;
+        } else {
+          other.moving = false;
+        }
+
+        other.draw(c);
       }
 
       foreground.draw(c);
 
-      if (keys.w.pressed) {
+      const updateMovement = (key, adjust) => {
+        setlastKeypressed(key);
+        let move = true;
+        player.moving = true;
+        player.keys = key;
 
-        let move = true;
-        player.moving = true;
-        player.keys = 'w';
         boundaries.forEach((boundary) => {
-          if (collusionCheck({ background, boundary, key: 'w' })) move = false;
+          if (collusionCheck({ background, boundary, key })) move = false;
         });
+
         if (move) {
-          background.position.y += velocity;
-          foreground.position.y += velocity;
+          background.position[adjust.axis] += adjust.value;
+          foreground.position[adjust.axis] += adjust.value;
         }
-      } else if (keys.s.pressed) {
-        let move = true;
-        player.moving = true;
-        player.keys = 's';
-        boundaries.forEach((boundary) => {
-          if (collusionCheck({ background, boundary, key: 's' })) move = false;
-        });
-        if (move) {
-          background.position.y -= velocity;
-          foreground.position.y -= velocity;
-        }
-      } else if (keys.a.pressed) {
-        let move = true;
-        player.moving = true;
-        player.keys = 'a';
-        boundaries.forEach((boundary) => {
-          if (collusionCheck({ background, boundary, key: 'a' })) move = false;
-        });
-        if (move) {
-          background.position.x += velocity;
-          foreground.position.x += velocity;
-        }
-      } else if (keys.d.pressed) {
-        let move = true;
-        player.moving = true;
-        player.keys = 'd';
-        boundaries.forEach((boundary) => {
-          if (collusionCheck({ background, boundary, key: 'd' })) move = false;
-        });
-        if (move) {
-          background.position.x -= velocity;
-          foreground.position.x -= velocity;
-        }
-      } else {
+      };
+
+      if (keys.w.pressed) updateMovement('w', { axis: 'y', value: velocity });
+      else if (keys.s.pressed) updateMovement('s', { axis: 'y', value: -velocity });
+      else if (keys.a.pressed) updateMovement('a', { axis: 'x', value: velocity });
+      else if (keys.d.pressed) updateMovement('d', { axis: 'x', value: -velocity });
+      else {
         player.moving = false;
         player.keys = 's';
       }
+
       if (player.moving && now - lastUpdateRef.current > 100) {
         setPlayer({
           x: -background.position.x - 750,
@@ -311,36 +336,11 @@ const MapCanvas = () => {
     }
 
     const keyDownHandler = (e) => {
-      switch (e.key) {
-        case 'w':
-          keys.w.pressed = true;
-          break;
-        case 's':
-          keys.s.pressed = true;
-          break;
-        case 'a':
-          keys.a.pressed = true;
-          break;
-        case 'd':
-          keys.d.pressed = true;
-          break;
-      }
+      if (keys[e.key]) keys[e.key].pressed = true;
     };
+
     const keyUpHandler = (e) => {
-      switch (e.key) {
-        case 'w':
-          keys.w.pressed = false;
-          break;
-        case 's':
-          keys.s.pressed = false;
-          break;
-        case 'a':
-          keys.a.pressed = false;
-          break;
-        case 'd':
-          keys.d.pressed = false;
-          break;
-      }
+      if (keys[e.key]) keys[e.key].pressed = false;
     };
 
     window.addEventListener('keydown', keyDownHandler);
