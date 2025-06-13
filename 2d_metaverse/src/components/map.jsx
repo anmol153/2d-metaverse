@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { collusion } from '../data/collusion';
 import socket from '../socket';
-import { useDispatch, useSelector } from 'react-redux';
-import { addplayer } from '../redux/player';
+import { useAuthStore } from '../store/useAuthStore';
+import { MessageCircle, MessageCircleCode, MessageCircleIcon } from 'lucide-react';
+import { Link } from 'react-router';
+
 
 class Spirite {
   constructor({ position, velocity, image, frames = { max: 1 }, spirites, id }) {
@@ -43,7 +45,6 @@ class Spirite {
       this.image.width / this.frames.max,
       this.image.height
     );
-
     const text = String(this.id);
     const padding = 8;
     const fontSize = 14;
@@ -94,8 +95,8 @@ class Spirite {
 let otherplayer = [];
 
 const MapCanvas = () => {
-  const selector = useSelector((state) => state.user);
-  const myId = selector.player;
+  const {authUser} = useAuthStore();
+  const myId = authUser.username;
   const canvasRef = useRef(null);
   const [playerposition, setPlayer] = useState({});
   const lastUpdateRef = useRef(Date.now());
@@ -356,7 +357,13 @@ const MapCanvas = () => {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="w-full h-full" />;
+  return (<>
+        <canvas ref={canvasRef} className="w-full h-full" />
+        <Link to="" className="absolute right-15 bottom-10">
+                <MessageCircleCode className="size-15 text-amber-500"/>
+            </Link>
+        </>
+  )
 };
 
 export default MapCanvas;
