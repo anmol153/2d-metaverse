@@ -16,7 +16,7 @@ const SideBar = () => {
     },[getUser]);
     
     const filteredUsers = showOnlineOnly
-    ? user.filter((user) => onlineUser.includes(user._id))
+    ? user.filter((user) => onlineUser.includes(user.username))
     : user;
     const handleSubmit = (e)=>{
         e.preventDefault();

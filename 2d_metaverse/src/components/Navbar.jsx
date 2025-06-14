@@ -4,14 +4,17 @@ import {Home, HomeIcon, LogIn, LogOutIcon, MessageCircleDashed, Settings, Settin
 import { useLocation } from "react-router";
 import { LogOut } from "lucide-react";
 import { useThemeStore } from "../store/useThemestore";
-import { Profiler } from "react";
+
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout, authUser } = useAuthStore();
   const {setSectionTarget} = useThemeStore();
 
-   console.log(location.pathname);
+
+  const handleLeave =()=> {
+      
+  }
 
    const handleTop =()=>{
     setSectionTarget('home');
@@ -82,10 +85,10 @@ const Navbar = () => {
                 <span>Settings</span>
               </Link>
 
-              <Link to="/" className="bg-red-500 flex flex-row gap-2 hover:text-yellow-300 px-2 rounded-lg items-center">
+              <button  onClick={handleLeave} className="bg-red-500 flex flex-row gap-2 hover:text-yellow-300 px-2 rounded-lg items-center">
                 <span>Leave</span>
                 <LogOutIcon className="size-5" />
-              </Link>
+              </button>
             </ul>
           </div>
         )}

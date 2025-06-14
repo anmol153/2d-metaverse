@@ -29,7 +29,7 @@ const Home = () => {
 
 
   const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '100%']);
-  const textY = useTransform(scrollYProgress, [0, 1], ['0%', '300%']);
+  const textY = useTransform(scrollYProgress, [0, 1], ['0%', '200%']);
 
   return (
     <>
@@ -59,18 +59,20 @@ const Home = () => {
 
         {/* Background Image */}
         <motion.div
-          className='absolute inset-0 z-0 '
+          className='absolute inset-0 z-0 transform-gpu'
           style={{
             y: backgroundY,
             backgroundImage: `url(/_9ac7235d-b230-4092-ad1e-df458809bf99.jpg)`,
             backgroundPosition: 'bottom',
             backgroundSize: 'cover',
+            
+            
           }}
         ></motion.div>
 
         {/* Man Layer */}
         <motion.div
-          className='absolute inset-0 z-20'
+          className='absolute inset-0 z-20 transform-gpu'
           style={{
             backgroundImage: `url(/man.png)`,
             backgroundPosition: 'bottom',

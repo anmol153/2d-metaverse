@@ -31,7 +31,9 @@ const App = () => {
         <Route path="/settings" element={<Settings />} />
         <Route path="/profile" element={authUser ? <Profile /> : <Navigate to="/Signup" />} />
         <Route path="/about" element={<About/>} />
-        <Route path="/map" element={<MapCanvas />} />
+        <Route path="/map" element={<MapCanvas />} >
+            <Route path="homelay" element={<HomeLay />} />
+        </Route>
         <Route path = "/map/settings" element = {<Settings/>} />
         <Route path = "/map/profile" element = {<Profile/>} />
         <Route path="/homelay" element={<HomeLay />} />

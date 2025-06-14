@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { collusion } from '../data/collusion';
 import socket from '../socket';
 import { useAuthStore } from '../store/useAuthStore';
-import { MessageCircle, MessageCircleCode, MessageCircleIcon } from 'lucide-react';
-import { Link } from 'react-router';
-
+import { MessageCircleCode,  X } from 'lucide-react';
+import HomeLay from './HomeLay';
+import { useChatStore } from '../store/useChatStore';
 
 class Spirite {
   constructor({ position, velocity, image, frames = { max: 1 }, spirites, id }) {
@@ -95,17 +95,25 @@ class Spirite {
 let otherplayer = [];
 
 const MapCanvas = () => {
-  const {authUser} = useAuthStore();
+  const {authUser,setonlineUser} = useAuthStore();
   const myId = authUser.username;
   const canvasRef = useRef(null);
   const [playerposition, setPlayer] = useState({});
   const lastUpdateRef = useRef(Date.now());
   const [lastKeypressed, setlastKeypressed] = useState('s');
+  const [velocity,setVelocity] = useState(2);
+  const velocityRef = useRef(velocity);
+  const {selectedUser}  = useChatStore();
+  useEffect(() => {
+    velocityRef.current = velocity;
+  }, [velocity]);
+
 
   useEffect(() => {
     socket.emit('player-position', { id: myId, position: playerposition, keys: lastKeypressed });
   }, [playerposition]);
 
+  const [messages,setMessaged] = useState(true);
   useEffect(() => {
     const canvas = canvasRef.current;
     const c = canvas.getContext('2d');
@@ -118,7 +126,10 @@ const MapCanvas = () => {
       const x = collusion.slice(i, i + 70);
       collusionMap.push(x);
     }
-
+    const handleBeforeUnload = (e) => {
+    e.preventDefault();
+    e.returnValue = ''; 
+    };
     const image = new Image();
     image.src = '/Pellet Town.png';
     const foreimage = new Image();
@@ -133,12 +144,12 @@ const MapCanvas = () => {
     const playerRightImage = new Image();
     playerRightImage.src = '/playerRight.png';
 
-    const velocity = 1;
-
-    socket.emit('new-user connected', myId);
+    socket.connect();
+    socket.emit("connected",{userId:authUser.username});
 
     socket.on('existing_users', (data) => {
-      data.forEach(({ id }) => {
+      console.log(data);
+      data.forEach((id) => {
         if (id === myId) return;
 
         const other = new Spirite({
@@ -164,6 +175,7 @@ const MapCanvas = () => {
     socket.on('new-user-connected', ({ id }) => {
       if (id === myId) return;
 
+      console.log(id);
       const other = new Spirite({
         position: {
           x: canvas.width / 2 - canvas.width * 0.13,
@@ -182,6 +194,10 @@ const MapCanvas = () => {
 
       otherplayer.push({ id, player: other, lastUpdated: Date.now() });
     });
+
+  socket.on("getOnlineUser",(user)=>{
+      setonlineUser(user)
+  });
 
     class Boundary {
       static width = 65;
@@ -260,7 +276,7 @@ const MapCanvas = () => {
     const collusionCheck = ({ background, boundary, key }) => {
       let testX = -background.position.x + 0.35 * canvas.width;
       let testY = -background.position.y + 0.45 * canvas.height;
-      const padding = 5;
+      const padding = velocity;
 
       if (key === 'w') testY -= padding;
       if (key === 's') testY += padding;
@@ -274,7 +290,7 @@ const MapCanvas = () => {
         boundary.position.y <= testY
       );
     };
-
+    console.log(velocity);
     function animate() {
       window.requestAnimationFrame(animate);
       const now = Date.now();
@@ -317,11 +333,11 @@ const MapCanvas = () => {
           foreground.position[adjust.axis] += adjust.value;
         }
       };
-
-      if (keys.w.pressed) updateMovement('w', { axis: 'y', value: velocity });
-      else if (keys.s.pressed) updateMovement('s', { axis: 'y', value: -velocity });
-      else if (keys.a.pressed) updateMovement('a', { axis: 'x', value: velocity });
-      else if (keys.d.pressed) updateMovement('d', { axis: 'x', value: -velocity });
+      const currentVelocity = velocityRef.current;
+      if (keys.w.pressed) updateMovement('w', { axis: 'y', value: currentVelocity });
+      else if (keys.s.pressed) updateMovement('s', { axis: 'y', value: -currentVelocity });
+      else if (keys.a.pressed) updateMovement('a', { axis: 'x', value: currentVelocity });
+      else if (keys.d.pressed) updateMovement('d', { axis: 'x', value: -currentVelocity });
       else {
         player.moving = false;
         player.keys = 's';
@@ -343,7 +359,7 @@ const MapCanvas = () => {
     const keyUpHandler = (e) => {
       if (keys[e.key]) keys[e.key].pressed = false;
     };
-
+    window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('keydown', keyDownHandler);
     window.addEventListener('keyup', keyUpHandler);
 
@@ -354,16 +370,37 @@ const MapCanvas = () => {
     return () => {
       window.removeEventListener('keydown', keyDownHandler);
       window.removeEventListener('keyup', keyUpHandler);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
 
-  return (<>
-        <canvas ref={canvasRef} className="w-full h-full" />
-        <Link to="" className="absolute right-15 bottom-10">
-                <MessageCircleCode className="size-15 text-amber-500"/>
-            </Link>
-        </>
-  )
-};
+ return (
+  <div>
+    <canvas ref={canvasRef} className="w-full h-full" />
+
+    <button onClick={() => setMessaged(prev => !prev)} className="z-10 cursor-pointer absolute right-15 bottom-10">
+      {messages ? (
+        <MessageCircleCode className="size-15 text-primary" />
+      ) : !selectedUser ? (
+        <X className="size-15 text-primary" />
+      ) : null}
+    </button>
+
+    {!messages && <HomeLay />}
+
+    <div className="absolute left-15 bottom-10">
+      <h4 className="font-semibold text-xl py-2 pl-5">Speed</h4>
+      <input
+        type="range"
+        className="range text-primary w-50 h-5 cursor-pointer"
+        min={1}
+        max={10}
+        defaultValue={5}
+        onChange={(e) => setVelocity(Number(e.target.value))}
+      />
+    </div>
+  </div>
+);
+}
 
 export default MapCanvas;
