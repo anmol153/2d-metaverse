@@ -122,9 +122,6 @@ const MapCanvas = () => {
       socket.emit("connected",{userId:authUser.username});
       getGroupMessage();
       return () => {
-      if (authUser?._id) {
-        socket.emit('disconnection', authUser._id); 
-      }
       socket.disconnect();
       console.log("Socket manually disconnected from map");
     };

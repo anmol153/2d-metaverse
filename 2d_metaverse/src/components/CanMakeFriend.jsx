@@ -1,10 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import socket from '../socket';
+import { useChatStore } from '../store/useChatStore'; 
 
 const CanMakeFriend = () => {
   const [nearbyPlayers, setNearbyPlayers] = useState([]);
   const [sentRequests, setSentRequests] = useState({});
   const [loading, setLoading] = useState(null);
+
+  const {
+    getUser,
+    user,
+    addFriend
+  } = useChatStore();
+
+  useEffect(() => {
+    getUser();
+  }, [getUser]);
 
   useEffect(() => {
     const handleProximity = (playerId) => {
@@ -28,16 +39,20 @@ const CanMakeFriend = () => {
     };
   }, []);
 
-  const handleSendRequest = (playerId) => {
+  const handleSendRequest = async (playerId) => {
     setLoading(playerId);
-    socket.emit('send_friend_request', playerId, () => {
-      setSentRequests((prev) => ({ ...prev, [playerId]: true }));
-      setLoading(null);
-    });
+    await addFriend(playerId);
+    await getUser();
+    setSentRequests((prev) => ({ ...prev, [playerId]: true }));
+    setLoading(null);
+  };
+
+  const isTheyFriend = (playerId) => {
+    return user.some((u) => u.username === playerId);
   };
 
   return (
-    <div className="absolute top-20 left-10 p-4 w-72 bg-transparent shadow-2xl rounded-2xl border border-gray-200">
+    <div className="absolute top-20 left-10 p-4 w-72 bg-white/10 backdrop-blur-xl shadow-2xl rounded-2xl border border-gray-200">
       <h2 className="text-xl font-semibold text-gray-800 mb-3">
         Nearby Players
       </h2>
@@ -48,26 +63,28 @@ const CanMakeFriend = () => {
           {nearbyPlayers.map((playerId) => (
             <li
               key={playerId}
-              className="flex justify-between items-center bg-transparent rounded-xl px-3 py-2 hover:bg-slate-900/10  transition-all"
+              className="flex justify-between items-center bg-transparent rounded-xl px-3 py-2 hover:bg-slate-900/10 transition-all"
             >
               <span className="text-green-700 font-medium">{playerId}</span>
-              <button
-                onClick={() => handleSendRequest(playerId)}
-                disabled={sentRequests[playerId] || loading === playerId}
-                className={`text-sm px-3 py-1 rounded-full font-semibold ${
-                  sentRequests[playerId]
-                    ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+              {!isTheyFriend(playerId) && (
+                <button
+                  onClick={() => handleSendRequest(playerId)}
+                  disabled={sentRequests[playerId] || loading === playerId}
+                  className={`text-sm px-3 py-1 rounded-full font-semibold ${
+                    sentRequests[playerId]
+                      ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                      : loading === playerId
+                      ? 'bg-blue-400 text-white animate-pulse'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {sentRequests[playerId]
+                    ? 'Requested'
                     : loading === playerId
-                    ? 'bg-blue-400 text-white animate-pulse'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
-              >
-                {sentRequests[playerId]
-                  ? 'Requested'
-                  : loading === playerId
-                  ? 'Sending...'
-                  : 'Add Friend'}
-              </button>
+                    ? 'Sending...'
+                    : 'Add Friend'}
+                </button>
+              )}
             </li>
           ))}
         </ul>

@@ -49,18 +49,6 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('player-position', data);
   });
 
-  socket.on('disconnection', (userId) => {
-    if (userId && userSocketMap[userId]) {
-      delete userSocketMap[userId];
-      socket.broadcast.emit('user-disconnected', { id: userId });
-      io.emit("getOnlineUser", Object.keys(userSocketMap));
-    }
-    if (Object.keys(userSocketMap).length === 0) {
-    groupMessages.length = 0;
-    console.log("All users disconnected — chat buffer cleared.");
-  }
-  });
-
 
   socket.on("proximity", ({ player1, player2 }) => {
   const socketId1 = getReceiverId(player1);
@@ -74,8 +62,8 @@ io.on('connection', (socket) => {
   const socketId1 = getReceiverId(player1);
   const socketId2 = getReceiverId(player2);
 
-  if (socketId1) setTimeout(()=>{io.to(socketId1).emit("hideInteraction", player2)},5000);
-  if (socketId2) setTimeout(()=>{io.to(socketId2).emit("hideInteraction", player1)},5000);
+  if (socketId1) setTimeout(()=>{io.to(socketId1).emit("hideInteraction", player2)},3000);
+  if (socketId2) setTimeout(()=>{io.to(socketId2).emit("hideInteraction", player1)},3000);
   });
 
   socket.on("group-message", ({message }) => {

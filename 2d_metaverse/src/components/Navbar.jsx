@@ -77,7 +77,7 @@ const Navbar = () => {
           <div className="absolute flex text-white font-medium space-x-6 items-center right-10">
             {/* Left-aligned links for /map route */}
             <label className="flex space-x-6">
-             w <li className="hover:text-purple-300 transition flex flex-row gap-2 btn btn-sm">
+              <li className="hover:text-purple-300 transition flex flex-row gap-2 btn btn-sm">
                 <User2 className="size-5" />
                 {location.pathname=="/map" ? <Link to = "/map/profile">Profile</Link> : <Link to = "/map">Map</Link> }
               </li>

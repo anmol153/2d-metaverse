@@ -95,9 +95,9 @@ export const useChatStore = create((set, get) => ({
     }
 
     set({ isMessageSending: true });
-
+    console.log(selectedUser);
     try {
-      const res = await axiosToInstance.post(`/message/${selectedUser._id}`,formData,
+      const res = await axiosToInstance.post(`/message/${selectedUser.username}`,formData,
         {
           headers:{
         "Content-Type": "multipart/form-data"

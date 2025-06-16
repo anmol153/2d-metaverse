@@ -73,7 +73,9 @@ const sendMessage = asyncHandler(async(req,res,next) =>{
         let avatar = undefined;
         const senderId  = req.user_id;
         if(LocalPath)  avatar = await uploadOnChoudinary(LocalPath);
-        const {id:receiverId} = req.params;
+        const {id:receiverUsername} = req.params;
+        const receiverId = await User.findOne({username:receiverUsername});
+        if(!receiverId) throw ApiError(500,"Something wnent wrong");
         const newMessage = new Message({
             senderId,
             receiverId,
@@ -83,7 +85,7 @@ const sendMessage = asyncHandler(async(req,res,next) =>{
 
         await newMessage.save();
         
-        const receSocketId = getReceiverId(receiverId);
+        const receSocketId = getReceiverId(receiverUsername);
         if(receSocketId) {
             io.to(receSocketId).emit("newMessage",newMessage);
         }
