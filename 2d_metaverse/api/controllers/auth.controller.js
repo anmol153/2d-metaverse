@@ -277,6 +277,32 @@ const addFriends = asyncHandler(async (req, res, next) => {
         next(error);
     }
 });
+const deleteFriends = asyncHandler(async (req, res, next) => {
+    try{
+    const {username} = req.body;
+    const friend = await User.findOne({ username:username });
+    if (!friend) throw new ApiError(404, "User Not Found");
+   
+    const userUpdate =  User.findByIdAndUpdate(
+        req.user_id,
+        { $pull: { friends: friend._id } }, 
+        { new: true }
+    );
+    const friendUpdate =  User.findByIdAndUpdate(
+        friend._id,
+        {  $pull: { friends: req.user_id } },
+        { new: true }
+    );
+
+    const [updatedUser, updatedFriend] = await Promise.all([userUpdate, friendUpdate]);
+
+    res.status(200).json(new ApiResponse(200,
+    "Friendship cleared successfully",updatedUser));
+}
+    catch(error){
+        next(error);
+    }
+});
 
 const checkuser =  asyncHandler(async(req,res,next) =>{
     try {
@@ -293,4 +319,4 @@ const checkuser =  asyncHandler(async(req,res,next) =>{
         next(error);
     }
  })
-export { signUp, signIn, google,checkuser,updateDetails, updatepassword, signOut, deleteAccount, uploadAvatar,addFriends };
+export { signUp, signIn, google,checkuser,updateDetails, updatepassword, signOut, deleteAccount, uploadAvatar,addFriends,deleteFriends};

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addFriends, checkuser, deleteAccount, google, signIn, signOut, signUp, updateDetails, updatepassword, uploadAvatar } from "../controllers/auth.controller.js";
+import { addFriends, checkuser, deleteAccount, deleteFriends, google, signIn, signOut, signUp, updateDetails, updatepassword, uploadAvatar } from "../controllers/auth.controller.js";
 import JWTverify from "../middlewares/JWTverify.js";
 import { upload } from "../middlewares/multer.js";
 
@@ -13,6 +13,7 @@ AuthRouter.post("/update-password", JWTverify, updatepassword);
 AuthRouter.post("/sign-out", JWTverify, signOut);
 AuthRouter.post("/delete-account", JWTverify, deleteAccount);
 AuthRouter.post("/addFriend",JWTverify,addFriends);
+AuthRouter.post("/removeFriend",JWTverify,deleteFriends);
 AuthRouter.get("/check",JWTverify,checkuser);
 AuthRouter.post("/upload-avatar", JWTverify,
     upload.fields([

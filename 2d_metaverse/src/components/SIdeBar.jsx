@@ -5,11 +5,13 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/useAuthStore';
 const SideBar = () => {
-    const {getUser,user,selectedUser,isUserLoading,setSelectedUser,addFriend}   = useChatStore();
+    const {getUser,user,selectedUser,isUserLoading,setSelectedUser,addFriend,deleteFriend}   = useChatStore();
     
     const {onlineUser} =  useAuthStore();
     const [showOnlineOnly,setShowOnlineOnly] = useState(false);
     const [Friend,setFriend] = useState("");
+    const [UnFriend,setUnFriend] = useState("");
+    console.log(onlineUser);
     console.log(user);
     useEffect(()=>{
         getUser();
@@ -22,6 +24,11 @@ const SideBar = () => {
         e.preventDefault();
         if(Friend.trim() ==0) return toast.error("Please Enter the username");
         addFriend(Friend);
+    }
+    const deleteSubmit = (e)=>{
+        e.preventDefault();
+        if(UnFriend.trim() ==0) return toast.error("Please Enter the username");
+        deleteFriend(UnFriend);
     }
     if(isUserLoading) return <SidebarSkeleton/>
    return (
@@ -44,7 +51,7 @@ const SideBar = () => {
           </label>
           <span className="text-xs text-zinc-500">({onlineUser.length-1} online)</span>
         </div>
-        <div className="mt-3 hidden lg:flex items-center gap-2">
+        <div className="mt-3 hidden lg:flex items-center gap-2 lg:flex-col">
         <form onSubmit={(e)=>handleSubmit(e)}>
           <label className="cursor-pointer flex items-center gap-2">
             <input
@@ -55,6 +62,18 @@ const SideBar = () => {
               className="btn btn-sm gap-2 transition-colors rounded-lg"
             />
           <button className='btn btn-sm rounded-lg'>ADD</button>
+          </label>
+          </form>
+        <form onSubmit={(e)=>deleteSubmit(e)}>
+          <label className="cursor-pointer flex items-center gap-2">
+            <input
+              type="text"
+              valuse={UnFriend}
+              placeholder='Username'
+              onChange={(e)=>setUnFriend(e.target.value)}
+              className="btn btn-sm gap-2 transition-colors rounded-lg"
+            />
+          <button className='btn btn-sm rounded-lg bg-red-400 text-slate-900'>Remove</button>
           </label>
           </form>
         </div>
@@ -77,7 +96,7 @@ const SideBar = () => {
                 alt={user.username}
                 className="size-12 object-cover rounded-full"
               />
-              {onlineUser.includes(user._id) && (
+              {onlineUser.includes(user.username) && (
                 <span
                   className="absolute bottom-0 right-0 size-3 bg-green-500 
                   rounded-full ring-2 ring-zinc-900"
@@ -85,9 +104,9 @@ const SideBar = () => {
               )}
             </div>
             <div className="hidden lg:block text-left min-w-0">
-              <div className="font-medium truncate">{user.fullname}</div>
+              <div className="font-medium truncate">{user.fullname} </div>
               <div className="text-sm text-zinc-400">
-                {onlineUser.includes(user._id) ? "Online" : "Offline"}
+                {onlineUser.includes(user.username) ? "Online" : "Offline"}
               </div>
             </div>
           </button>

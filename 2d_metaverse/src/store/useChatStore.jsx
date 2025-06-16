@@ -12,7 +12,8 @@ export const useChatStore = create((set, get) => ({
   isFriendLoading: false,
   isMessageSending: false,
   user: [],
-
+  GroupMessage : [],
+  groupChat :  false,
   getUser: async () => {
     set({ isUserLoading: true });
     try {
@@ -67,6 +68,24 @@ export const useChatStore = create((set, get) => ({
       set({ isFriendLoading: false });
     }
   },
+  deleteFriend: async (Friend) => {
+    set({ isFriendLoading: true });
+    try {
+      const res = await axiosToInstance.post("/auth/removeFriend", { username: Friend });
+      const result = res.data;
+      if (result.success === true) {
+        toast.success(`${Friend} is not your friend now`);
+        get().getUser();
+      } else {
+        toast.error(result.message || "Failed to remove friend");
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to remove friend");
+      console.error(error);
+    } finally {
+      set({ isFriendLoading: false });
+    }
+  },
 
   sendMessage: async (formData) => {
     const { selectedUser, messages } = get();
@@ -115,4 +134,30 @@ export const useChatStore = create((set, get) => ({
     socket.off("newMessage");
   },
   setSelectedUser: (user) => set({ selectedUser: user }),
+
+
+  sendGroupMessage : (userId,message)  => {
+    socket.emit("group-message",{message});
+  },
+  getGroupMessage : () =>{
+    socket.off("load-group-messages");
+    const {GroupMessage} = get();
+    socket.on("load-group-messages",(groupMessages)=>
+      {
+        set({GroupMessage:groupMessages});
+        console.log(groupMessages);
+  })
+  },
+  getGroup: () => {
+  socket.off("group-message");
+  socket.on("group-message", (msg) => {
+    set({
+      GroupMessage: [...get().GroupMessage, msg]
+    });
+  });
+},
+GroupChatOn: ()=>{
+  const {groupChat} = get();
+  set({groupChat:!groupChat});
+}
 }));

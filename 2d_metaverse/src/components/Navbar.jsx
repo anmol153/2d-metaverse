@@ -12,10 +12,12 @@ const Navbar = () => {
   const {setSectionTarget} = useThemeStore();
 
 
-  const handleLeave =()=> {
-      
-  }
-
+   const handleLeave = () => {
+    const confirmed = window.confirm("Are you sure you want to leave the map?");
+    if (confirmed) {
+      navigate('/'); 
+    }
+  };
    const handleTop =()=>{
     setSectionTarget('home');
     navigate('/');
@@ -74,22 +76,17 @@ const Navbar = () => {
         ) :  (
           <div className="absolute flex text-white font-medium space-x-6 items-center right-10">
             {/* Left-aligned links for /map route */}
-            <ul className="flex space-x-6">
-              <li className="hover:text-purple-300 transition flex flex-row gap-2 btn btn-sm">
+            <label className="flex space-x-6">
+             w <li className="hover:text-purple-300 transition flex flex-row gap-2 btn btn-sm">
                 <User2 className="size-5" />
-                <Link to = "/map/profile">Profile</Link>
+                {location.pathname=="/map" ? <Link to = "/map/profile">Profile</Link> : <Link to = "/map">Map</Link> }
               </li>
 
-              <Link to="/map/settings" className="btn btn-sm flex flex-row gap-2 hover:text-blue-300">
-                <Settings2 className="size-5" />
-                <span>Settings</span>
-              </Link>
-
-              <button  onClick={handleLeave} className="bg-red-500 flex flex-row gap-2 hover:text-yellow-300 px-2 rounded-lg items-center">
+              <bitton  onClick={handleLeave} className="bg-red-500 flex flex-row gap-2 hover:text-yellow-300 px-2 rounded-lg items-center">
                 <span>Leave</span>
                 <LogOutIcon className="size-5" />
-              </button>
-            </ul>
+              </bitton>
+            </label>
           </div>
         )}
       </div>

@@ -33,10 +33,9 @@ const App = () => {
         <Route path="/about" element={<About/>} />
         <Route path="/map" element={<MapCanvas />} >
             <Route path="homelay" element={<HomeLay />} />
+            <Route path = "profile" element = {<Profile/>} />
+            <Route path=  "homelay" element={<HomeLay />} />
         </Route>
-        <Route path = "/map/settings" element = {<Settings/>} />
-        <Route path = "/map/profile" element = {<Profile/>} />
-        <Route path="/homelay" element={<HomeLay />} />
       </Route>
     )
   );

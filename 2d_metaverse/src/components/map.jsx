@@ -5,6 +5,10 @@ import { useAuthStore } from '../store/useAuthStore';
 import { MessageCircleCode,  X } from 'lucide-react';
 import HomeLay from './HomeLay';
 import { useChatStore } from '../store/useChatStore';
+import Profile from './Profile';
+import { Outlet } from 'react-router';
+import toast from 'react-hot-toast';
+import CanMakeFriend from './CanMakeFriend';
 
 class Spirite {
   constructor({ position, velocity, image, frames = { max: 1 }, spirites, id }) {
@@ -103,12 +107,29 @@ const MapCanvas = () => {
   const [lastKeypressed, setlastKeypressed] = useState('s');
   const [velocity,setVelocity] = useState(2);
   const velocityRef = useRef(velocity);
-  const {selectedUser}  = useChatStore();
+  const {selectedUser,getGroupMessage}  = useChatStore();
+  const{groupChat} = useChatStore();
+  const [canMake,setCanMake] = useState({});
+  const canMakeRef = useRef({});
+
+  
   useEffect(() => {
     velocityRef.current = velocity;
   }, [velocity]);
 
-
+  useEffect(()=>{
+      socket.connect();
+      socket.emit("connected",{userId:authUser.username});
+      getGroupMessage();
+      return () => {
+      if (authUser?._id) {
+        socket.emit('disconnection', authUser._id); 
+      }
+      socket.disconnect();
+      console.log("Socket manually disconnected from map");
+    };
+  },[]);
+  
   useEffect(() => {
     socket.emit('player-position', { id: myId, position: playerposition, keys: lastKeypressed });
   }, [playerposition]);
@@ -144,38 +165,40 @@ const MapCanvas = () => {
     const playerRightImage = new Image();
     playerRightImage.src = '/playerRight.png';
 
-    socket.connect();
-    socket.emit("connected",{userId:authUser.username});
 
     socket.on('existing_users', (data) => {
-      console.log(data);
-      data.forEach((id) => {
-        if (id === myId) return;
+    console.log(data);
+    data.forEach((id1) => {
+      if (id1 === myId) return;
+      if(!id1) return;
+      const existing = otherplayer.find(({ id }) => id1 === id);
+      if (existing) return;
 
-        const other = new Spirite({
-          position: {
-            x: canvas.width / 2 - canvas.width * 0.13,
-            y: canvas.height / 2 - canvas.height * 0.1,
-          },
-          image: playerImage,
-          frames: { max: 4 },
-          spirites: {
-            up: playerUpImage,
-            down: playerImage,
-            left: playerLeftImage,
-            right: playerRightImage,
-          },
-          id: id,
-        });
-
-        otherplayer.push({ id, player: other, lastUpdated: Date.now() });
-      });
+    const other = new Spirite({
+      position: {
+        x: canvas.width / 2 - canvas.width * 0.13,
+        y: canvas.height / 2 - canvas.height * 0.1,
+      },
+      image: playerImage,
+      frames: { max: 4 },
+      spirites: {
+        up: playerUpImage,
+        down: playerImage,
+        left: playerLeftImage,
+        right: playerRightImage,
+      },
+      id: id1,
     });
 
-    socket.on('new-user-connected', ({ id }) => {
-      if (id === myId) return;
-
-      console.log(id);
+    otherplayer.push({ id: id1, player: other, lastUpdated: Date.now() });
+  });
+});
+    socket.on('new-user-connected', ({ id1 }) => {
+      if (id1 === myId) return;
+      if(!id1) return;
+      const existing = otherplayer.find(({ id }) => id1 === id);
+      if (existing) return;
+      toast.success(`🟢 ${id1} just joined the game!`);
       const other = new Spirite({
         position: {
           x: canvas.width / 2 - canvas.width * 0.13,
@@ -189,10 +212,11 @@ const MapCanvas = () => {
           left: playerLeftImage,
           right: playerRightImage,
         },
-        id: id,
+        id: id1,
+        inrequest: false,
       });
 
-      otherplayer.push({ id, player: other, lastUpdated: Date.now() });
+      otherplayer.push({ id:id1, player: other, lastUpdated: Date.now() });
     });
 
   socket.on("getOnlineUser",(user)=>{
@@ -270,7 +294,9 @@ const MapCanvas = () => {
     });
 
     socket.on('user-disconnected', ({ id }) => {
+      const otherpl = otherplayer.find((entry) => entry.id == id);
       otherplayer = otherplayer.filter((entry) => entry.id !== id);
+      if(otherpl) toast.error(` ${id}  removed the game!`);
     });
 
     const collusionCheck = ({ background, boundary, key }) => {
@@ -290,7 +316,24 @@ const MapCanvas = () => {
         boundary.position.y <= testY
       );
     };
-    console.log(velocity);
+    const isClose = (ox,oy,px, py, threshold = 60) => {
+      const dx = px - ox;
+      const dy = py - oy;
+      return Math.sqrt(dx * dx + dy * dy) < threshold;
+    };
+
+ const CloserTime = (other) => {
+  const now = Date.now();
+
+  if (!other.inrequest && now - other.time >= 2000) {
+    socket.emit("proximity", { player1:authUser.username,player2:other.id});
+    other.inrequest = true;
+  } else if (other.inrequest && now - other.time < 2000) {
+    socket.emit("non_proximity", { player1:authUser.username,player2:other.id});
+    other.inrequest = false;
+  }
+};
+
     function animate() {
       window.requestAnimationFrame(animate);
       const now = Date.now();
@@ -312,7 +355,9 @@ const MapCanvas = () => {
         } else {
           other.moving = false;
         }
-
+        const is=isClose(other.position.x - other.offx,other.position.y - other.offy,player.position.x,player.position.y,100);
+        if(!is) other.time = Date.now();
+        CloserTime(other);
         other.draw(c);
       }
 
@@ -379,13 +424,13 @@ const MapCanvas = () => {
     <canvas ref={canvasRef} className="w-full h-full" />
 
     <button onClick={() => setMessaged(prev => !prev)} className="z-10 cursor-pointer absolute right-15 bottom-10">
-      {messages ? (
+      {messages  ? (
         <MessageCircleCode className="size-15 text-primary" />
-      ) : !selectedUser ? (
+      ) : (!selectedUser && !groupChat) ? (
         <X className="size-15 text-primary" />
       ) : null}
     </button>
-
+    <CanMakeFriend/>
     {!messages && <HomeLay />}
 
     <div className="absolute left-15 bottom-10">
@@ -399,6 +444,7 @@ const MapCanvas = () => {
         onChange={(e) => setVelocity(Number(e.target.value))}
       />
     </div>
+    <Outlet/>
   </div>
 );
 }

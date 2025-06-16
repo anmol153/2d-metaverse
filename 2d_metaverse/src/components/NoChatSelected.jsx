@@ -1,8 +1,14 @@
 import { MessageSquare } from "lucide-react";
+import { useState } from "react";
+import {GroupChat} from "./GroupChat";
+import { useChatStore } from "../store/useChatStore";
 
 const NoChatSelected = () => {
+  const {GroupChatOn,groupChat} = useChatStore();
   return (
-    <div className="w-full flex flex-1 flex-col items-center justify-center p-16 bg-base-100/50">
+    <div className="w-full">
+    <button onClick={()=>GroupChatOn()} className="text center btn btn-block max-w-full"> Group Chat</button>
+    {!groupChat ? <div className="w-full flex flex-1 flex-col items-center justify-center p-16 bg-base-100/50">
       <div className="max-w-md text-center space-y-6">
         {/* Icon Display */}
         <div className="flex justify-center gap-4 mb-4">
@@ -22,6 +28,7 @@ const NoChatSelected = () => {
           Select a conversation from the sidebar to start chatting
         </p>
       </div>
+    </div> : <GroupChat/>}
     </div>
   );
 };
