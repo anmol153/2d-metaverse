@@ -88,6 +88,33 @@ io.on('connection', (socket) => {
     console.log("All users disconnected — chat buffer cleared.");
   }
   });
+
+  socket.on("join room",(data)=>{
+    const {username,room} = data;
+    socket.join(room);
+    io.to(room).emit("user:joined",{username,id:socket.id});
+    io.to(socket.id).emit("Joined",data);
+
+
+  })
+    socket.on("call-user",({remoteSocketId,offer,username})=>{
+      console.log(remoteSocketId);
+          io.to(remoteSocketId).emit('incoming-call',{from:username,offer:offer,id:socket.id});
+    })
+
+    socket.on("call-accepted",(data) =>{
+      const {username,answer,id} = data;
+      console.log(username);
+      io.to(id).emit("call-accepted",{answer});
+    })
+
+    socket.on('nego',({to,offer})=>{
+      io.to(to).emit("nego",{from:socket.id,offer});
+    })
+    socket.on('nego_done',({to,ans})=>{
+      io.to(to).emit("nego_final",{ans});
+    })
+    
 });
 
 export { io, server, app };

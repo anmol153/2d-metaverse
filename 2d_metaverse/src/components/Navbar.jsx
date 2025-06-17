@@ -61,6 +61,10 @@ const Navbar = () => {
                   <User className="size-5" />
                   <span>Profile</span>
                 </Link>
+                <Link to="/video" className="btn btn-sm gap-2">
+                  <User className="size-5" />
+                  <span>Video</span>
+                </Link>
                 <button onClick={logout} className="flex gap-2 items-center btn btn-sm">
                   <LogOut className="size-5" />
                   <span>Logout</span>

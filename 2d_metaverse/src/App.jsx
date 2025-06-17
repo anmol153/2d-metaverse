@@ -13,6 +13,8 @@ import Settings from './components/Settings';
 import Profile from './components/Profile';
 import { Toaster } from 'react-hot-toast';
 import About from './components/About';
+import VideoChat from './components/VideoChat';
+import Room from './components/Room';
 
 const App = () => {
   const { authUser, checkAuth } = useAuthStore();
@@ -36,6 +38,8 @@ const App = () => {
             <Route path = "profile" element = {<Profile/>} />
             <Route path=  "homelay" element={<HomeLay />} />
         </Route>
+        <Route path = "/video" element={authUser ? <VideoChat /> : <Navigate to="/Signup" />} />
+        <Route path = "/room/:roomId" element={<Room/>} />
       </Route>
     )
   );
