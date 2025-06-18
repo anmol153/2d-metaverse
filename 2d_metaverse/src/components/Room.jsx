@@ -110,21 +110,19 @@ const Room = () => {
   };
 
   return (
-    <div className="text-center pt-20 flex flex-col items-center gap-6">
-      <h1 className="text-2xl font-bold">WebRTC Room</h1>
-
+    <div className=" text-center  flex flex-row items-center gap-2 absolute left-[35%] top-20 ">
       <video
         ref={localVideoRef}
         autoPlay
         muted
         playsInline
-        className="w-[400px] h-[300px] bg-black rounded-md"
+        className="h-[150px] w-[250px] rounded-lg bg-transparent  object-cover"
       />
       <video
         ref={remoteVideoRef}
         autoPlay
         playsInline
-        className="w-[400px] h-[300px] bg-black rounded-md"
+        className="w-[300px] h-[150px]  rounded-lg bg-transparent aspect-[4/3]"
       />
 
       {remoteSocketId ? (

@@ -9,6 +9,8 @@ import Profile from './Profile';
 import { Outlet } from 'react-router';
 import toast from 'react-hot-toast';
 import CanMakeFriend from './CanMakeFriend';
+import VideoChat from './VideoChat';
+import Room from './Room';
 
 class Spirite {
   constructor({ position, velocity, image, frames = { max: 1 }, spirites, id }) {
@@ -107,11 +109,11 @@ const MapCanvas = () => {
   const [lastKeypressed, setlastKeypressed] = useState('s');
   const [velocity,setVelocity] = useState(2);
   const velocityRef = useRef(velocity);
-  const {selectedUser,getGroupMessage}  = useChatStore();
+  const {selectedUser,getGroupMessage,room,getCall,canJoinVideo}  = useChatStore();
   const{groupChat} = useChatStore();
   const [canMake,setCanMake] = useState({});
   const canMakeRef = useRef({});
-
+  getCall();
   
   useEffect(() => {
     velocityRef.current = velocity;
@@ -441,6 +443,8 @@ const MapCanvas = () => {
         onChange={(e) => setVelocity(Number(e.target.value))}
       />
     </div>
+    {canJoinVideo && <VideoChat/>}
+    {room && <Room/>}
     <Outlet/>
   </div>
 );

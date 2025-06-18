@@ -14,6 +14,9 @@ export const useChatStore = create((set, get) => ({
   user: [],
   GroupMessage : [],
   groupChat :  false,
+  personalRoom : null,
+  canJoinVideo : false,
+  room:false,
   getUser: async () => {
     set({ isUserLoading: true });
     try {
@@ -159,5 +162,49 @@ export const useChatStore = create((set, get) => ({
 GroupChatOn: ()=>{
   const {groupChat} = get();
   set({groupChat:!groupChat});
+},
+setRoom : (room) =>{
+  const {personalRoom} = get();
+  set({personalRoom:room});
+},
+callOther : () => {
+  const authUser = useAuthStore.getState().authUser;
+  const { selectedUser, personalRoom} = get();
+  socket.emit("join_peer", { from: authUser.username, to: selectedUser.username, room: personalRoom });
+
+  socket.on("call_accepted", ({ from }) => {
+    toast.success(`Call accepted by ${from}`);
+    set({canJoinVideo:true});
+  });
+
+  socket.on("call_rejected", ({ from }) => {
+    set({personalRoom:null});
+    toast.error(`Call rejected by ${from}`);
+  });
+},
+getCall: () => {
+  socket.off("join_peer");
+  socket.on("join_peer", ({ from, room }) => {
+    const accepted = window.confirm(`Incoming video call from ${from}. Do you want to accept the call?`);
+    if (accepted) {
+      get().acceptCall(from, room);
+    } else {
+      get().rejectCall(from, room);
+    }
+  });
+},
+acceptCall: (from, room) => {
+  const { authUser } = useAuthStore.getState(); 
+  set({ personalRoom: room });
+  set({canJoinVideo:true});
+  socket.emit("accept_call", { to: from, from: authUser.username });
+},
+rejectCall: (from, room) => {
+  const { authUser } = useAuthStore.getState(); 
+  socket.emit("reject_call", { to: from, from: authUser.username });
+},
+nowJoin : () =>{
+  set({canJoinVideo:false});
+  set({room:true});
 }
 }));

@@ -115,6 +115,24 @@ io.on('connection', (socket) => {
       io.to(to).emit("nego_final",{ans});
     })
     
+    socket.on("join_peer",(data)=>{
+      console.log("getcall");
+      const {from,to,room} = data;
+      const toId = getReceiverId(to);
+      io.to(toId).emit("join_peer",{from,room});
+    });
+    socket.on("accept_call", (data)=>{
+      const {from,to} = data;
+      const reId = getReceiverId(to);
+      io.to(reId).emit("call_accepted",{from});
+    }
+  );
+    socket.on("reject_call", (data)=>{
+      const {from,to} = data;
+      const reId = getReceiverId(to);
+      io.to(reId).emit("call_rejected",{from});
+    }
+  );
 });
 
 export { io, server, app };

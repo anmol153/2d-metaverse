@@ -37,9 +37,10 @@ const App = () => {
             <Route path="homelay" element={<HomeLay />} />
             <Route path = "profile" element = {<Profile/>} />
             <Route path=  "homelay" element={<HomeLay />} />
+        <Route path = "video" element={authUser ? <VideoChat /> : <Navigate to="/Signup" />} >
+                <Route path = "room/:roomId" element={<Room/>} />
         </Route>
-        <Route path = "/video" element={authUser ? <VideoChat /> : <Navigate to="/Signup" />} />
-        <Route path = "/room/:roomId" element={<Room/>} />
+        </Route>
       </Route>
     )
   );

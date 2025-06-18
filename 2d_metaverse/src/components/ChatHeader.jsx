@@ -1,10 +1,20 @@
-import { X } from "lucide-react";
+import { VideoIcon, X } from "lucide-react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
+import toast from "react-hot-toast";
+import { useState } from "react";
+import socket from "../socket";
 
 const ChatHeader = () => {
-  const { selectedUser, setSelectedUser } = useChatStore();
-  const { onlineUser } = useAuthStore();
+  const { selectedUser, setSelectedUser,setRoom,personalRoom,callOther} = useChatStore();
+  const { onlineUser,authUser } = useAuthStore();
+
+  const handleVideoChat = (e)=>{
+    e.preventDefault();
+    toast.success("request send");
+    setRoom(authUser._id);
+    callOther();
+  };
 
   return (
     <div className="p-2.5 border-b border-base-300">
@@ -21,15 +31,23 @@ const ChatHeader = () => {
           <div>
             <h3 className="font-medium">{selectedUser.fullname} ({selectedUser.username})</h3>
             <p className="text-sm text-base-content/70">
-              {onlineUser.includes(selectedUser._id) ? "Online" : "Offline"}
+              {onlineUser.includes(selectedUser.username) ? "Online" : "Offline"}
             </p>
           </div>
         </div>
+        <div className="flex flex-row  justify-end gap-7">
+        {onlineUser.includes(selectedUser.username) && 
+        ( 
 
+          <form onSubmit={handleVideoChat}>
+            <button disabled={personalRoom}><VideoIcon className="ml-30"/></button>
+          </form>
+        )}
         {/* Close button */}
         <button onClick={() => setSelectedUser(null)}>
           <X />
         </button>
+        </div>
       </div>
     </div>
   );

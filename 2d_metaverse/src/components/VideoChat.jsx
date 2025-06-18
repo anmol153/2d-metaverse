@@ -2,9 +2,11 @@ import React, { useCallback, useEffect } from 'react'
 import { useAuthStore } from '../store/useAuthStore'
 import { Outlet, useNavigate } from 'react-router';
 import socket from '../socket';
+import { useChatStore } from '../store/useChatStore';
 const VideoChat = () => {
     const {authUser} = useAuthStore();
     const navigate  = useNavigate();
+    const {personalRoom,nowJoin}  = useChatStore();
     useEffect(()=>{
         socket.connect();
         socket.emit("connected",{userId:authUser.username});
@@ -13,11 +15,11 @@ const VideoChat = () => {
 
     const handleSubmit = (e)=>{
         e.preventDefault();
-        socket.emit("join room", {username:authUser.username,room:1});
+        socket.emit("join room", {username:authUser.username,room:personalRoom});
     }
 
-    const handleJoin = useCallback(({room})=>{
-        navigate(`/room/${room}`);
+    const handleJoin = useCallback(()=>{
+        nowJoin();
     });
 
     useEffect(()=>{
@@ -27,7 +29,7 @@ const VideoChat = () => {
     },[socket]);
   return (
     <>
-    <div className='pt-20 bg-slate-700'>
+    <div className=' bg-slate-700 absolute top-0.5 left-200 rounded-lg z-100'>
         <form onSubmit={handleSubmit}>
             <button className='btn btn-lg ' >Join</button>
         </form>
@@ -36,4 +38,4 @@ const VideoChat = () => {
   )
 }
 
-export default VideoChat
+export default VideoChat;
