@@ -81,6 +81,8 @@ io.on('connection', (socket) => {
       delete userSocketMap[disconnectedUserId];
       socket.broadcast.emit('user-disconnected', { id: disconnectedUserId });
       io.emit("getOnlineUser", Object.keys(userSocketMap));
+      io.emit('user:offline', socket.id); 
+
       console.log(`User disconnected: ${disconnectedUserId}`);
     }
     if (Object.keys(userSocketMap).length === 0) {
@@ -131,8 +133,10 @@ io.on('connection', (socket) => {
       const {from,to} = data;
       const reId = getReceiverId(to);
       io.to(reId).emit("call_rejected",{from});
-    }
-  );
+    });
+    socket.on('end-call', ({to})=>{
+      io.to(to).emit('end-call');
+    })
 });
 
 export { io, server, app };

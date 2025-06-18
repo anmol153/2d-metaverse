@@ -7,11 +7,6 @@ const VideoChat = () => {
     const {authUser} = useAuthStore();
     const navigate  = useNavigate();
     const {personalRoom,nowJoin}  = useChatStore();
-    useEffect(()=>{
-        socket.connect();
-        socket.emit("connected",{userId:authUser.username});
-    },[]);
-
 
     const handleSubmit = (e)=>{
         e.preventDefault();

@@ -206,5 +206,10 @@ rejectCall: (from, room) => {
 nowJoin : () =>{
   set({canJoinVideo:false});
   set({room:true});
+},
+endCall : () =>{
+  set({canJoinVideo:null});
+  set({room:false});
+  set({personalRoom:null});
 }
 }));

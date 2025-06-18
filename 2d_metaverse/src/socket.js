@@ -4,16 +4,21 @@ const socket = io("http://localhost:5000", {
   transports: ["websocket"],
 });
 
-export const peer = new RTCPeerConnection({
-  iceServers: [
-    {
-      urls: 'stun:stun.l.google.com:19302',
-    },
-    {
-      urls: 'stun:global.stun.twilio.com:3478',
-    },
-  ],
-});
+function createPeer() {
+  return new RTCPeerConnection({
+    iceServers: [
+      {
+        urls: 'stun:stun.l.google.com:19302',
+      },
+      {
+        urls: 'stun:global.stun.twilio.com:3478',
+      },
+    ],
+  });
+}
+
+export let peer = createPeer();
+
 
 export const createOffer = async () => {
   const offer = await peer.createOffer();
@@ -42,6 +47,10 @@ export const setRemoteAns = async (answer) => {
   await peer.setRemoteDescription(new RTCSessionDescription(answer));
 };
 
+
+export const resetPeer = ()=>{
+  peer = createPeer();
+}
 
 
 export default socket;
