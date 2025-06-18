@@ -2,8 +2,6 @@ import { VideoIcon, X } from "lucide-react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import toast from "react-hot-toast";
-import { useState } from "react";
-import socket from "../socket";
 
 const ChatHeader = () => {
   const { selectedUser, setSelectedUser,setRoom,personalRoom,callOther} = useChatStore();

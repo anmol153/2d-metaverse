@@ -171,7 +171,7 @@ const Room = () => {
         ref={remoteVideoRef}
         autoPlay
         playsInline
-        className="h-[150px] w-[250px] rounded-lg object-cover bg-transparent"
+        className="h-[150px] w-[250px] rounded-lg object-cover "
       /> 
       {remoteSocketId && !isConnected? (
         <button

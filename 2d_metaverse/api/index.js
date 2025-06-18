@@ -7,7 +7,6 @@ import errorHandler from './middlewares/errorHandler.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { app,server } from './socket.js';
-import path from 'path';
 
 // const __dirname = path.resolve();
 dotenv.config();

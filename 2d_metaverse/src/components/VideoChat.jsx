@@ -26,7 +26,7 @@ const VideoChat = () => {
     <>
     <div className=' bg-slate-700 absolute top-0.5 left-200 rounded-lg z-100'>
         <form onSubmit={handleSubmit}>
-            <button className='btn btn-lg ' >Join</button>
+            <button className='btn btn-success ' >Join</button>
         </form>
     </div>
     </>

@@ -2,7 +2,6 @@ import http from 'http';
 import express from 'express';
 import { Server } from 'socket.io';
 import cors from 'cors';
-
 const app = express();
 const server = http.createServer(app);
 
@@ -138,5 +137,6 @@ io.on('connection', (socket) => {
       io.to(to).emit('end-call');
     })
 });
+
 
 export { io, server, app };
