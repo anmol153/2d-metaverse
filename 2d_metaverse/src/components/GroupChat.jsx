@@ -12,6 +12,7 @@ const GroupChat = () => {
 
   useEffect(() => {
     getGroup();
+    getGroupMessage();
     return () => {
       socket.off("newMessage");
     };
@@ -24,7 +25,8 @@ const GroupChat = () => {
   return (
     <div className="flex-1 flex flex-col overflow-auto h-[calc(100vh-8rem)]">
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        {GroupMessage.map((message) => {
+        {GroupMessage.length == 0 ? <h1 className=' h-full flex justify-center items-center animate-pulse'>It's quiet here... say something 👋</h1>: 
+        GroupMessage.map((message) => {
           const isMine = message.senderId === authUser._id;
           return (
             <div

@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import socket, { createOffer, createAnswer, setRemoteAns, peer, resetPeer } from '../socket';
 import { useAuthStore } from '../store/useAuthStore';
-import { PhoneOff, Volume, Volume1, Volume2, VolumeOff } from 'lucide-react';
+import { PhoneOff, Volume2, VolumeOff } from 'lucide-react';
 import { useChatStore } from '../store/useChatStore';
 
 const Room = () => {
   const [remoteSocketId, setRemoteSocketId] = useState(null);
   const { authUser } = useAuthStore();
   const [myStream, setMyStream] = useState(null);
-  const [remoteStream, setRemoteStream] = useState(new MediaStream());
+  const [remoteStream, setRemoteStream] = useState(null); // ✅ changed from new MediaStream()
   const [isConnected, setIsConnected] = useState(false);
   const [muteFriend, setMuteFriend] = useState(true);
-  const {endCall} = useChatStore();
+  const { endCall } = useChatStore();
+
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
 
@@ -19,8 +20,8 @@ const Room = () => {
     (async () => {
       try {
         if (peer.signalingState === 'closed') {
-        resetPeer();
-      }
+          resetPeer();
+        }
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: true,
           video: true,
@@ -41,7 +42,7 @@ const Room = () => {
   const handleCallUser = useCallback(async () => {
     if (!remoteSocketId || !myStream) return;
     if (peer.signalingState === 'closed') {
-        resetPeer();
+      resetPeer();
     }
     const offer = await createOffer();
     socket.emit('call-user', {
@@ -52,7 +53,6 @@ const Room = () => {
     console.log('Calling user:', remoteSocketId);
   }, [remoteSocketId, myStream]);
 
-
   const handleEndCall = () => {
     peer.close();
     if (myStream) {
@@ -62,12 +62,14 @@ const Room = () => {
       remoteStream.getTracks().forEach(track => track.stop());
     }
     setMyStream(null);
-    setRemoteStream(new MediaStream());
+    setRemoteStream(null);
     setIsConnected(false);
     setRemoteSocketId(null);
+    
     socket.emit('end-call', { to: remoteSocketId });
     endCall();
   };
+
   useEffect(() => {
     const onUserJoined = ({ username, id }) => {
       console.log('User joined:', username, id);
@@ -96,6 +98,7 @@ const Room = () => {
     socket.on('nego_final', async ({ ans }) => {
       await setRemoteAns(ans);
     });
+
     socket.on('end-call', () => {
       peer.close();
       if (myStream) myStream.getTracks().forEach(track => track.stop());
@@ -103,13 +106,15 @@ const Room = () => {
       setIsConnected(false);
       setRemoteSocketId(null);
       setMyStream(null);
-      setRemoteStream(new MediaStream());
+      setRemoteStream(null);
       endCall();
     });
+
     socket.on('user:offline', (id) => {
-        if(!remoteSocketId) return;
-        if (id === remoteSocketId) handleCallUser();
+      if (!remoteSocketId) return;
+      if (id === remoteSocketId) handleCallUser();
     });
+
     return () => {
       socket.off('user:joined', onUserJoined);
       socket.off('incoming-call');
@@ -135,16 +140,14 @@ const Room = () => {
   useEffect(() => {
     const trackHandler = (event) => {
       console.log('Received remote stream:', event.streams[0]);
-      event.streams[0].getTracks().forEach(track => {
-        remoteStream.addTrack(track);
-      });
+      setRemoteStream(event.streams[0]); // ✅ important fix
     };
 
     peer.addEventListener('track', trackHandler);
     return () => {
       peer.removeEventListener('track', trackHandler);
     };
-  }, [remoteStream]);
+  }, []);
 
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream) {
@@ -167,31 +170,34 @@ const Room = () => {
         playsInline
         className="h-[150px] w-[250px] rounded-lg object-cover"
       />
-     <video
+      <video
         ref={remoteVideoRef}
         autoPlay
         playsInline
-        className="h-[150px] w-[250px] rounded-lg object-cover "
-      /> 
-      {remoteSocketId && !isConnected? (
+        className="h-[150px] w-[250px] rounded-lg object-cover"
+      />
+      {remoteSocketId && !isConnected ? (
         <button
           onClick={handleCallUser}
-          className="absolute top-0 left-80 btn  btn-success z-100"
+          className="absolute top-0 left-80 btn btn-base z-100"
         >
           Call User
         </button>
-      ) : (
-        null
-      )}
+      ) : null}
       {isConnected && (
         <>
           <button onClick={() => setMuteFriend(prev => !prev)}>
-            {muteFriend ? <Volume2 className="size-5 absolute top-30 left-120" /> : <VolumeOff className="size-5 absolute top-30 left-120" />}
+            {!muteFriend ? (
+              <Volume2 className="size-5 absolute top-30 left-120" />
+            ) : (
+              <VolumeOff className="size-5 absolute top-30 left-120" />
+            )}
           </button>
-          </>)}
-          <button onClick={handleEndCall}>
-             <PhoneOff className="size-5 absolute top-29 left-55 text-red-500" />
-          </button>
+        </>
+      )}
+      <button onClick={handleEndCall}>
+        <PhoneOff className="size-5 absolute top-29 left-55 text-red-500" />
+      </button>
     </div>
   );
 };

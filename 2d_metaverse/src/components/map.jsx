@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { collusion } from '../data/collusion';
 import socket from '../socket';
 import { useAuthStore } from '../store/useAuthStore';
-import { MessageCircleCode,  X } from 'lucide-react';
 import HomeLay from './HomeLay';
 import { useChatStore } from '../store/useChatStore';
 import Profile from './Profile';
@@ -11,7 +10,10 @@ import toast from 'react-hot-toast';
 import CanMakeFriend from './CanMakeFriend';
 import VideoChat from './VideoChat';
 import Room from './Room';
-
+import { motion,AnimatePresence  } from 'framer-motion';
+import {ArrowElbowRight, ArrowElbowUpRightIcon, CaretCircleDoubleLeft, CaretCircleDoubleRightIcon, UserSquareIcon} from '@phosphor-icons/react'
+import RoomList from './RoomList';
+import RoomView from './RoomView';
 class Spirite {
   constructor({ position, velocity, image, frames = { max: 1 }, spirites, id }) {
     this.position = position;
@@ -109,10 +111,11 @@ const MapCanvas = () => {
   const [lastKeypressed, setlastKeypressed] = useState('s');
   const [velocity,setVelocity] = useState(2);
   const velocityRef = useRef(velocity);
-  const {selectedUser,getGroupMessage,room,getCall,canJoinVideo}  = useChatStore();
+  const {selectedUser,getGroupMessage,room,getCall,canJoinVideo,videoChatRomm}  = useChatStore();
   const{groupChat} = useChatStore();
   const [canMake,setCanMake] = useState({});
   const canMakeRef = useRef({});
+  const [videoChat,setVideo] = useState(true);
   getCall();
   
   useEffect(() => {
@@ -422,15 +425,36 @@ const MapCanvas = () => {
   <div>
     <canvas ref={canvasRef} className="w-full h-full" />
 
-    <button onClick={() => setMessaged(prev => !prev)} className="z-10 cursor-pointer absolute right-15 bottom-10">
+    {videoChat && <button onClick={() => setMessaged(prev => !prev)} className={`z-2000 cursor-pointer fixed right-[-32px]  bottom-10 overflow-hidden`}>
       {messages  ? (
-        <MessageCircleCode className="size-15 text-primary" />
-      ) : (!selectedUser && !groupChat) ? (
-        <X className="size-15 text-primary" />
+       <CaretCircleDoubleLeft size={64} weight="fill" className="text-base-100 opacity-90  " />
+      ) : (!selectedUser ) ? (
+         <CaretCircleDoubleRightIcon size={64} weight="fill" className="text-shadow-base-300 opacity-90 " />
       ) : null}
-    </button>
+    </button>}
     <CanMakeFriend/>
-    {!messages && <HomeLay />}
+    
+    {messages && <button onClick={() => setVideo(prev => !prev)} className={`z-2000 cursor-pointer fixed right-[-10px] top-20 overflow-hidden`}>
+      {videoChat  ? (
+       <UserSquareIcon size={64} weight="fill" className="text-base-100 opacity-90 " />
+      ) : (!selectedUser ) ? (
+       <ArrowElbowUpRightIcon size={64} weight="fill" className="text-base-100 opacity-90  ml-6" />
+      ) : null} 
+    </button>}
+
+
+    <AnimatePresence>
+    {!messages && (
+    <motion.div
+    initial={{ x: 200, opacity: 0 }}
+    animate={{ x: 0, opacity: 1 }}
+    exit={{ x: 200, opacity: 0 }}
+    transition={{ type: 'spring', stiffness: 70, damping: 15 }}
+    className="fixed left-0 top-0 w-full h-full z-1000 overflow-hidden " >
+    <HomeLay />
+  </motion.div>
+)}
+  </AnimatePresence>
 
     <div className="absolute left-15 bottom-10">
       <h4 className="font-semibold text-xl py-2 pl-5">Speed</h4>
@@ -443,8 +467,23 @@ const MapCanvas = () => {
         onChange={(e) => setVelocity(Number(e.target.value))}
       />
     </div>
+
+
+    <AnimatePresence>
+    {!videoChat && (
+    <motion.div
+    initial={{ x: 200, opacity: 0 }}
+    animate={{ x: 0, opacity: 1 }}
+    exit={{ x: 200, opacity: 0 }}
+    transition={{ type: 'spring', stiffness: 70, damping: 15 }}
+    className="fixed left-0 top-0 w-full h-full z-1000 overflow-hidden " >
+    <RoomList />
+  </motion.div>
+    )}
+  </AnimatePresence>
     {canJoinVideo && <VideoChat/>}
     {room && <Room/>}
+    {videoChatRomm && <RoomView/>}
     <Outlet/>
   </div>
 );

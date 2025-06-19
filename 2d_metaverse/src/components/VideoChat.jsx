@@ -24,7 +24,7 @@ const VideoChat = () => {
     },[socket]);
   return (
     <>
-    <div className=' bg-slate-700 absolute top-0.5 left-200 rounded-lg z-100'>
+    <div className=' bg-slate-700 absolute top-0.5 left-200 rounded-lg z-400'>
         <form onSubmit={handleSubmit}>
             <button className='btn btn-success ' >Join</button>
         </form>

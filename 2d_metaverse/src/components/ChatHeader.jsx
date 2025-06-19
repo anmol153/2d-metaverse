@@ -4,11 +4,12 @@ import { useAuthStore } from "../store/useAuthStore";
 import toast from "react-hot-toast";
 
 const ChatHeader = () => {
-  const { selectedUser, setSelectedUser,setRoom,personalRoom,callOther} = useChatStore();
+  const { selectedUser, setSelectedUser,setRoom,personalRoom,callOther,videoChatRomm} = useChatStore();
   const { onlineUser,authUser } = useAuthStore();
 
   const handleVideoChat = (e)=>{
     e.preventDefault();
+    if(videoChatRomm) return toast.error(`🚪 Hold on! You're already chilling in ${videoChatRomm}`)
     toast.success("request send");
     setRoom(authUser._id);
     callOther();

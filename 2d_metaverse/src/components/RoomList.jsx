@@ -2,13 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createLocalVideoTrack } from 'livekit-client';
 import { axiosToInstance } from '../lib/axios';
+import { useChatStore } from '../store/useChatStore';
+import toast from 'react-hot-toast';
 
 const RoomList = () => {
   const [rooms, setRooms] = useState([]);
   const [previewTrack, setPreviewTrack] = useState(null);
   const previewRef = useRef(null);
   const navigate = useNavigate();
-
+  const {videoChatRomm,setVideoChat,personalRoom} = useChatStore();
   useEffect(() => {
     fetchRooms();
   }, []);
@@ -27,44 +29,31 @@ const RoomList = () => {
     }
   };
 
-  const showVideoPreview = async () => {
-    const track = await createLocalVideoTrack();
-    setPreviewTrack(track);
-    const element = track.attach();
-    previewRef.current.innerHTML = '';
-    previewRef.current.appendChild(element);
-  };
 
   const joinRoom = (roomName) => {
-    navigate(`/room/${roomName}`);
+    if(videoChatRomm) return toast.error(`🚪 Hold on! You're already chilling in ${videoChatRomm}`);
+    if(personalRoom) return toast.error(`🚪 Hold on! You're already chilling `);
+    setVideoChat(roomName);
   };
 
   return (
-    <div className="p-6 text-white">
+    <div className="p-6  absolute flex flex-col top-30 right-5 bg-base-100 opacity-95 rounded-lg z-1000">
       <h2 className="text-2xl mb-4">Available Rooms</h2>
-      <button onClick={createRoom} className="bg-green-500 px-4 py-2 rounded mb-4">
+      <button onClick={createRoom} className="bg-accent px-4 py-2 rounded mb-4">
         Create New Room
       </button>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {rooms.map((room) => (
+        {rooms.length !=0 ? rooms.map((room) => (
           <div
             key={room.name}
-            className="bg-gray-800 rounded p-4 cursor-pointer hover:bg-gray-700"
+            className=" rounded p-4 cursor-pointer bg-base-300"
             onClick={() => joinRoom(room.name)}
           >
             <h3 className="text-lg font-bold">{room.name}</h3>
             <p>{room.numParticipants} participants</p>
           </div>
-        ))}
-      </div>
-
-      <div className="mt-8">
-        <h3 className="text-lg mb-2">Video Preview</h3>
-        <button onClick={showVideoPreview} className="bg-blue-500 px-4 py-2 rounded">
-          Show Preview
-        </button>
-        <div ref={previewRef} className="mt-4 w-64 h-48 bg-black rounded" />
+        )) : <h1>No Room </h1>}
       </div>
     </div>
   );

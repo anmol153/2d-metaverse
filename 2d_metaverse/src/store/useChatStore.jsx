@@ -17,6 +17,7 @@ export const useChatStore = create((set, get) => ({
   personalRoom : null,
   canJoinVideo : false,
   room:false,
+  videoChatRomm : null,
   getUser: async () => {
     set({ isUserLoading: true });
     try {
@@ -211,5 +212,7 @@ endCall : () =>{
   set({canJoinVideo:null});
   set({room:false});
   set({personalRoom:null});
-}
+},
+setVideoChat :(room)=>{set({videoChatRomm:room})},
+endVideoCall :()=>{set({videoChatRomm:null})},
 }));
