@@ -7,6 +7,7 @@ import errorHandler from './middlewares/errorHandler.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { app,server } from './socket.js';
+import router from './token.js';
 
 // const __dirname = path.resolve();
 dotenv.config();
@@ -21,6 +22,7 @@ app.use(cors({
 
 app.use("/api/v1/auth", AuthRouter);
 app.use("/api/v1/message", MessageRoute);
+app.use("/api/v1/live",router)
 app.use(errorHandler);
 
 // if(process.env.NODE_ENV==="production"){
