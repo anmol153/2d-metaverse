@@ -8,8 +8,8 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { app,server } from './socket.js';
 import router from './token.js';
-
-// const __dirname = path.resolve();
+import path from 'path'
+const __dirname = path.resolve();
 dotenv.config();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -26,10 +26,10 @@ app.use("/api/v1/live",router)
 app.use(errorHandler);
 
 // if(process.env.NODE_ENV==="production"){
-//   app.use(express.static(path.join(__dirname,"../Client/dist")));
-//   app.get("/",(req,res)=>{
-//     res.sendFile(path.join(__dirname,"../Client","dist","index.html"));
-//   })
+  app.use(express.static(path.join(__dirname,"../dist")));
+  app.get("/",(req,res)=>{
+    res.sendFile(path.join(__dirname,"../","dist","index.html"));
+  })
 // }
 
 connectDB()

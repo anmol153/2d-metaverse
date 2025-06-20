@@ -1,7 +1,34 @@
 {
+  "name": "2d-metaverse",
+  "version": "1.0.0",
+  "description": "metaverse",
+  "homepage": "https://github.com/anmol153/2d-metaverse#readme",
+  "bugs": {
+    "url": "https://github.com/anmol153/2d-metaverse/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anmol153/2d-metaverse.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node 2d_metaverse/api/index.js",
+    "build": "npm install --prefix 2d_metaverse && npm install --prefix 2d_metaverse/api && npm run build --prefix 2d_metaverse",
+    "dev": "concurrently \"npm run livekit\" \"npm run frontend\" \"npm run backend\"",
+    "livekit": "cd livekit && .\\livekit-server.exe --config livekit.yaml",
+    "frontend": "cd 2d_metaverse && npm run dev",
+    "backend": "cd 2d_metaverse/api && node index.js"
+  },
   "dependencies": {
     "framer-motion": "^12.17.3",
     "tailwindcss": "^4.1.10",
     "tailwindcss-textshadow": "^2.1.3"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }

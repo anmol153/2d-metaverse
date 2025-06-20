@@ -2,8 +2,8 @@ import { AccessToken, RoomServiceClient, } from 'livekit-server-sdk';
 import express from 'express';
 
 const router = express.Router();
-const apiKey = '123432';
-const apiSecret = "mnbvcxz0987654321mnbvcxz09876543"
+const apiKey = process.env.LIVEKIT_API_KEY;
+const apiSecret = process.env.LIVEKIT_API_SECRET;
 const wsUrl = 'http://localhost:7880';
 
 const livekit = new RoomServiceClient(wsUrl,apiKey,apiSecret);

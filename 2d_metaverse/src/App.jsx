@@ -15,7 +15,6 @@ import { Toaster } from 'react-hot-toast';
 import About from './components/About';
 import VideoChat from './components/VideoChat';
 import Room from './components/Room';
-import Room1 from './components/LiveRoom';
 import RoomList from './components/RoomList';
 import RoomView from './components/RoomView';
 
@@ -44,7 +43,6 @@ const App = () => {
                 <Route path = "room/:roomId" element={<Room/>} />
         </Route>
         </Route>
-        <Route path = "room1/:roomId" element={<Room1 />} />
         <Route path="/room2" element={<RoomList />} />
         <Route path="/room2/:name" element={<RoomView />} />
       </Route>
