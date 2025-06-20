@@ -19,7 +19,7 @@
     "build": "npm install --prefix 2d_metaverse && npm install --prefix 2d_metaverse/api && npm run build --prefix 2d_metaverse",
     "dev": "concurrently \"npm run livekit\" \"npm run backend\"",
     "livekit": "cd livekit && .\\livekit-server.exe --config livekit.yaml",
-    "backend": "cd 2d_metaverse/api && node index.js"
+    "backend": "npm run dev --prefix 2d_metaverse/api"
   },
   "dependencies": {
     "framer-motion": "^12.17.3",
