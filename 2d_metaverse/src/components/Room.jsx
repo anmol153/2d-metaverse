@@ -8,9 +8,8 @@ const Room = () => {
   const [remoteSocketId, setRemoteSocketId] = useState(null);
   const { authUser } = useAuthStore();
   const [myStream, setMyStream] = useState(null);
-  const [remoteStream, setRemoteStream] = useState(null); // ✅ changed from new MediaStream()
+  const [remoteStream, setRemoteStream] = useState(null); 
   const [isConnected, setIsConnected] = useState(false);
-  const [muteFriend, setMuteFriend] = useState(true);
   const { endCall } = useChatStore();
 
   const localVideoRef = useRef(null);
@@ -140,7 +139,7 @@ const Room = () => {
   useEffect(() => {
     const trackHandler = (event) => {
       console.log('Received remote stream:', event.streams[0]);
-      setRemoteStream(event.streams[0]); // ✅ important fix
+      setRemoteStream(event.streams[0]); 
     };
 
     peer.addEventListener('track', trackHandler);
@@ -154,12 +153,7 @@ const Room = () => {
       remoteVideoRef.current.srcObject = remoteStream;
     }
   }, [remoteStream]);
-
-  useEffect(() => {
-    if (remoteVideoRef.current) {
-      remoteVideoRef.current.muted = muteFriend;
-    }
-  }, [muteFriend]);
+  
 
   return (
     <div className="absolute left-1/3 top-2 z-[150] flex flex-row items-center gap-4 bg-transparent">
@@ -184,17 +178,6 @@ const Room = () => {
           Call User
         </button>
       ) : null}
-      {isConnected && (
-        <>
-          <button onClick={() => setMuteFriend(prev => !prev)}>
-            {!muteFriend ? (
-              <Volume2 className="size-5 absolute top-30 left-120" />
-            ) : (
-              <VolumeOff className="size-5 absolute top-30 left-120" />
-            )}
-          </button>
-        </>
-      )}
       <button onClick={handleEndCall}>
         <PhoneOff className="size-5 absolute top-29 left-55 text-red-500" />
       </button>

@@ -22,7 +22,7 @@ export function getReceiverId(userId) {
 io.on('connection', (socket) => {
 
   socket.on("connected", ({userId})=>{
-
+  
 
   socket.join('global-room');
   socket.emit("load-group-messages", groupMessages);
@@ -90,7 +90,6 @@ io.on('connection', (socket) => {
     socket.join(room);
     io.to(room).emit("user:joined",{username,id:socket.id});
     io.to(socket.id).emit("Joined",data);
-
 
   })
     socket.on("call-user",({remoteSocketId,offer,username})=>{

@@ -173,9 +173,10 @@ callOther : () => {
   const { selectedUser, personalRoom} = get();
   socket.emit("join_peer", { from: authUser.username, to: selectedUser.username, room: personalRoom });
 
+
   socket.on("call_accepted", ({ from }) => {
     toast.success(`Call accepted by ${from}`);
-    set({canJoinVideo:true});
+     set({canJoinVideo:true});
   });
 
   socket.on("call_rejected", ({ from }) => {
@@ -198,7 +199,7 @@ acceptCall: (from, room) => {
   const { authUser } = useAuthStore.getState(); 
   set({ personalRoom: room });
   set({canJoinVideo:true});
-  socket.emit("accept_call", { to: from, from: authUser.username });
+  socket.emit("accept_call", { to: from, from: authUser.username});
 },
 rejectCall: (from, room) => {
   const { authUser } = useAuthStore.getState(); 
