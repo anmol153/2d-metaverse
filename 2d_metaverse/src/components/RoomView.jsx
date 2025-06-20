@@ -154,7 +154,7 @@ const RoomView = () => {
         );
       });
 
-      await newRoom.connect(process.env.LIVEKIT_URL || 'ws://localhost:7880', token);
+      await newRoom.connect(process.env.LIVEKIT_URL, token);
 
       newRoom.on('connected', (participant) => {
         setParticipants((prev) => [...prev, participant]);
