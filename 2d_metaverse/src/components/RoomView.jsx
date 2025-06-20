@@ -153,8 +153,9 @@ const RoomView = () => {
           prev.filter((p) => p.identity !== participant.identity)
         );
       });
-
-      await newRoom.connect(process.env.LIVEKIT_URL, token);
+      const LIVEKIT_URL = import.meta.env.VITE_LIVEKIT_URL;
+      console.log(LIVEKIT_URL);
+      await newRoom.connect(LIVEKIT_URL, token);
 
       newRoom.on('connected', (participant) => {
         setParticipants((prev) => [...prev, participant]);
