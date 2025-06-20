@@ -16,7 +16,6 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node 2d_metaverse/api/index.js",
     "build": "npm install --prefix 2d_metaverse && npm install --prefix 2d_metaverse/api && npm run build --prefix 2d_metaverse",
     "dev": "concurrently \"npm run livekit\" \"npm run backend\"",
     "livekit": "cd livekit && .\\livekit-server.exe --config livekit.yaml",
