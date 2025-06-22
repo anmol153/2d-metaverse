@@ -14,7 +14,7 @@ const SignUp = () => {
     username: "",
   });
 
-  const { signup, isSigningUp } = useAuthStore();
+  const { signup, isSigningUp,handleGoogle} = useAuthStore();
 
   const validateForm = () => {
     if (!formData.fullname.trim()) return toast.error("Full name is required");
@@ -34,7 +34,10 @@ const SignUp = () => {
     console.log(formData);
     if (success === true) signup(formData);
   };
-
+  const handleGoogleClick =(e)=>{
+    e.preventDefault();
+    handleGoogle();
+  }
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       {/* left side */}
@@ -149,6 +152,7 @@ const SignUp = () => {
             </button>
           </form>
 
+          <button onClick={handleGoogleClick} type="button" className='mx-w-6xl p-3 text-center btn btn-secondary w-full rounded-lg text-slate-100 hover:opacity-90'>CONTINUE WITH GOOGLE</button>
           <div className="text-center">
             <p className="text-base-content/60">
               Already have an account?{" "}

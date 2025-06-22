@@ -52,7 +52,7 @@ const Navbar = () => {
 
             <Link to="/settings" className="btn btn-sm flex flex-row gap-2 hover:text-yellow-300">
               <Settings2 className="size-5" />
-              <span>Setting</span>
+              <span>Settings</span>
             </Link>
 
             {authUser ? (

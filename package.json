@@ -22,6 +22,8 @@
     "backend": "npm run dev --prefix 2d_metaverse/api"
   },
   "dependencies": {
+    "@firebase/app": "^0.13.1",
+    "firebase": "^11.9.1",
     "framer-motion": "^12.17.3",
     "tailwindcss": "^4.1.10",
     "tailwindcss-textshadow": "^2.1.3"

@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import { axiosToInstance } from "../lib/axios";
 import toast from "react-hot-toast";
+import { app } from "../Constants/firebase";
+import {getAuth, GoogleAuthProvider, signInWithPopup} from 'firebase/auth'
+
 
 export const useAuthStore = create((set,get) => ({
   authUser: null,
@@ -109,4 +112,40 @@ export const useAuthStore = create((set,get) => ({
     if(get().socket?.connected) get().socket.disconnect();
   },
   setonlineUser : (user)=> set({onlineUser:user}),
+   handleGoogle: async () => {
+    set({ isSignUPing: true });
+    try {
+      const provider = new GoogleAuthProvider();
+      const auth = getAuth(app);
+      const result = await signInWithPopup(auth, provider);
+
+      const generateUsername = (fullName) => {
+        const name = fullName.toLowerCase().replace(/\s+/g, '');
+        const randomNum = Math.floor(Math.random() * 10000);
+        return `${name}${randomNum}`;
+      };
+
+      const payload = {
+        username: generateUsername(result.user.displayName),
+        fullName: result.user.displayName,
+        email: result.user.email,
+        photourl: result.user.photoURL,
+      };
+
+      const res = await axiosToInstance.post("/auth/google", payload);
+      const data = res.data;
+
+      if (data.success === true) {
+        set({ authUser: data.data });
+        toast.success("User successfully signed in via Google!");
+      } else {
+        toast.error(data.message || "Google sign-in failed");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message || "Something went wrong");
+    } finally {
+      set({ isSignUPing: false });
+    }
+  },
 }));
+

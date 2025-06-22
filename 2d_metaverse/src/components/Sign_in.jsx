@@ -11,7 +11,7 @@ const Sign_in = () => {
         password: "",
     });
 
-    const { signin,isLoggingIn } = useAuthStore();
+    const { signin,isLoggingIn,handleGoogle } = useAuthStore();
 
     const validForm = ()=>{
          if (!formData.email.trim()) return toast.error("Email is required");
@@ -27,7 +27,10 @@ const Sign_in = () => {
         if(success === true) signin(formData);
     };
 
-
+    const handleGoogleClick =(e)=>{
+    e.preventDefault();
+    handleGoogle();
+  }
   return (
     <div className="h-screen grid lg:grid-cols-2">
       {/* Left Side - Form */}
@@ -95,7 +98,7 @@ const Sign_in = () => {
                 </button>
               </div>
             </div>
-
+            
             <button type="submit" className="btn btn-primary w-full" disabled={isLoggingIn}>
               {isLoggingIn ? (
                 <>
@@ -107,6 +110,7 @@ const Sign_in = () => {
               )}
             </button>
           </form>
+          <button onClick={handleGoogleClick} type="button" className='mx-w-6xl p-3 text-center btn btn-secondary w-full rounded-lg text-slate-100 hover:opacity-90'>CONTINUE WITH GOOGLE</button>
 
           <div className="text-center">
             <p className="text-base-content/60">
