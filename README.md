@@ -1,6 +1,6 @@
 # 🌐 2D Metaverse - Real-Time Multiplayer World
 
-A feature-rich **2D multiplayer metaverse** built with **React, Canvas, Socket.IO, WebRTC**, and **LiveKit**. Explore, chat, call, and interact in real-time — all from your browser.
+A feature-rich **2D multiplayer metaverse** built with **React, Canvas, Socket.IO, WebRTC, Firebase** and **LiveKit**. Explore, chat, call, and interact in real-time — all from your browser.
 
 
 ---
@@ -35,6 +35,7 @@ A feature-rich **2D multiplayer metaverse** built with **React, Canvas, Socket.I
 
 ### 👤 User Profiles
 
+- Google authentication using Firebase
 - JWT-based authentication
 - ✅ Upload personal **profile photo**
 - Profile shown in chat and video calls
@@ -60,5 +61,6 @@ A feature-rich **2D multiplayer metaverse** built with **React, Canvas, Socket.I
 | Backend      | Express.js, MongoDB       |
 | File Upload  | Multer or Cloudinary      |
 | Auth         | JWT or session-based      |
+|              | Firebase                  |
 
 ---
